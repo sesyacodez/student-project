@@ -11,7 +11,6 @@ class StudentStatus(models.TextChoices):
 class ParentRelation(models.TextChoices):
     MOTHER = "mother", "Mother"
     FATHER = "father", "Father"
-    GUARDIAN = "guardian", "Guardian"
     OTHER = "other", "Other"
 
 
