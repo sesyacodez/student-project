@@ -10,18 +10,7 @@ class LessonTemplate(models.Model):
     name = models.CharField(max_length=100)
     start_date = models.DateField()
     end_date = models.DateField()
-    days_of_week = models.MultipleChoiceField(
-        max_length=20,
-        choices=[
-            ("mon", "Monday"),
-            ("tue", "Tuesday"),
-            ("wed", "Wednesday"),
-            ("thu", "Thursday"),
-            ("fri", "Friday"),
-            ("sat", "Saturday"),
-            ("sun", "Sunday"),
-        ],
-    )
+    days_of_week = models.JSONField(default=list)
     start_time = models.TimeField()
     end_time = models.TimeField()
     is_active = models.BooleanField(default=True)
@@ -36,14 +25,14 @@ class LessonTemplate(models.Model):
         related_name="lesson_templates",
     )
     student = models.ForeignKey(
-        "branches.Student",
+        "students_and_groups.Student",
         on_delete=models.CASCADE,
         related_name="lesson_templates",
         null=True,
         blank=True,
     )
     group = models.ForeignKey(
-        "branches.Group",
+        "students_and_groups.Group",
         on_delete=models.CASCADE,
         related_name="lesson_templates",
         null=True,
@@ -84,14 +73,14 @@ class Lesson(models.Model):
         related_name="lessons",
     )
     student = models.ForeignKey(
-        "branches.Student",
+        "students_and_groups.Student",
         on_delete=models.CASCADE,
         related_name="lessons",
         null=True,
         blank=True,
     )
     group = models.ForeignKey(
-        "branches.Group",
+        "students_and_groups.Group",
         on_delete=models.CASCADE,
         related_name="lessons",
         null=True,
@@ -120,7 +109,7 @@ class Attendance(models.Model):
         related_name="attendance_records",
     )
     student = models.ForeignKey(
-        "branches.Student",
+        "students_and_groups.Student",
         on_delete=models.CASCADE,
         related_name="attendance_records",
     )
