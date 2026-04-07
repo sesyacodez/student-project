@@ -16,10 +16,10 @@ class Migration(migrations.Migration):
             name='Branch',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=150)),
-                ('address', models.CharField(max_length=255)),
-                ('city', models.CharField(max_length=100)),
-                ('status', models.CharField(choices=[('active', 'Active'), ('archived', 'Archived')], default='active', max_length=20)),
+                ('name', models.CharField(max_length=255, verbose_name='Branch Name')),
+                ('address', models.CharField(max_length=255, verbose_name='Address')),
+                ('city', models.CharField(max_length=100, verbose_name='City')),
+                ('status', models.CharField(choices=[('active', 'Active'), ('archived', 'Archived')], default='active', max_length=20, verbose_name='Status')),
             ],
         ),
         migrations.CreateModel(
