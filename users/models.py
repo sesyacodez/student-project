@@ -25,8 +25,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     
     phone = models.CharField(max_length=20, unique=True)
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
+
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='TEACHER')
     
     is_active = models.BooleanField(default=True)
