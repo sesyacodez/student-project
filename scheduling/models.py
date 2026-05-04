@@ -1,10 +1,7 @@
 from django.conf import settings
 from django.db import models
 
-# Посилання на Subject, Student та Group з апки branches
-# на момент створення цих моделей вони ще не існують
-# за потреби доведеться імпортувати їх пізніше або використовувати рядкові посилання (поки що так і є (branches.))
-
+# Subject у проєкті живе в апці branches; Student/Group — у students_and_groups.
 
 class LessonTemplate(models.Model):
     name = models.CharField(max_length=100)
