@@ -12,3 +12,7 @@ db.sqlite3
 
 .DS_Store
 Thumbs.db
+
+# frontend (Node tooling, when added)
+frontend/node_modules/
+frontend/dist/
