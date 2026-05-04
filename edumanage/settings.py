@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'users',
     'branches',
     'students_and_groups',
+    'subscriptions',
     'scheduling',
 ]
 

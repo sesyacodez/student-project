@@ -46,17 +46,6 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='SubscriptionPlan',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('type', models.CharField(choices=[('individual', 'Individual'), ('group', 'Group')], default='individual', max_length=20)),
-                ('status', models.CharField(choices=[('active', 'Active'), ('archived', 'Archived')], default='active', max_length=20)),
-                ('branch', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='subscription_plans', to='branches.branch')),
-                ('subjects', models.ManyToManyField(blank=True, related_name='subscription_plans', to='branches.subject')),
-            ],
-        ),
-        migrations.CreateModel(
             name='GroupMembership',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -67,34 +56,6 @@ class Migration(migrations.Migration):
             ],
             options={
                 'ordering': ['-join_date'],
-                'constraints': [models.UniqueConstraint(fields=('group', 'student'), name='unique_group_student_membership')],
-            },
-        ),
-        migrations.CreateModel(
-            name='StudentSubscription',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('start_date', models.DateField(default=django.utils.timezone.localdate)),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='subscriptions', to='students_and_groups.student')),
-                ('subject', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='student_subscriptions', to='branches.subject')),
-                ('subscription_plan', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='student_subscriptions', to='students_and_groups.subscriptionplan')),
-            ],
-            options={
-                'ordering': ['-start_date'],
-                'constraints': [models.UniqueConstraint(fields=('student', 'subscription_plan', 'subject'), name='unique_student_plan_subject_subscription')],
-            },
-        ),
-        migrations.CreateModel(
-            name='PricingTier',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('lessons_per_month', models.PositiveIntegerField()),
-                ('price_per_lesson', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('subscription_plan', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='pricing_tiers', to='students_and_groups.subscriptionplan')),
-            ],
-            options={
-                'ordering': ['lessons_per_month'],
-                'constraints': [models.UniqueConstraint(fields=('subscription_plan', 'lessons_per_month'), name='unique_lessons_per_month_per_plan')],
             },
         ),
     ]
