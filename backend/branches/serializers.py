@@ -3,7 +3,11 @@ from rest_framework.exceptions import ValidationError
 
 from .models import Branch, Subject
 
-
+class BranchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields = '__all__'
+        
 class BranchSummarySerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch

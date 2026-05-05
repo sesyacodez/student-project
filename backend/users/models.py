@@ -40,3 +40,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.phone} - {self.role})"
+    
+    branch = models.ForeignKey(
+        'branches.Branch', 
+        on_delete=models.SET_NULL,
+        null=True,      
+        blank=True,     
+        verbose_name="Філія",
+        related_name="users"
+    )
