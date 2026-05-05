@@ -1,3 +1,3 @@
-from django.shortcuts import render
+from .api import SubjectViewSet
 
-# Create your views here.
+__all__ = ["SubjectViewSet"]

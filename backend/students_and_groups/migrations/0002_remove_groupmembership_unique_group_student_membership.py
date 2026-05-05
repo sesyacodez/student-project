@@ -9,9 +9,4 @@ class Migration(migrations.Migration):
         ('students_and_groups', '0001_initial'),
     ]
 
-    operations = [
-        migrations.RemoveConstraint(
-            model_name='groupmembership',
-            name='unique_group_student_membership',
-        ),
-    ]
+    operations = []
