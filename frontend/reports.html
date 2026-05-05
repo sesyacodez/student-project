@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reports — EduManage</title>
+    <link rel="stylesheet" href="styles/global.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <header data-nav></header>
+      <main>
+        <h1>Reports</h1>
+        <div id="banner"></div>
+
+        <div class="app-tabs">
+          <button type="button" class="app-btn app-btn--ghost tab app-tab--active" data-tab="teacher">Teacher schedule</button>
+          <button type="button" class="app-btn app-btn--ghost tab" data-tab="student">Student attendance</button>
+          <button type="button" class="app-btn app-btn--ghost tab" id="tab-branch" data-tab="branch">Branch stats</button>
+        </div>
+
+        <div id="panel-teacher" class="tab-panel app-card">
+          <div class="app-card__body app-form">
+            <div class="app-form__row" id="r-teacher-row">
+              <label class="app-form__label" for="r-teacher-id">teacher_id (ADMIN)</label>
+              <input class="app-form__input" id="r-teacher-id" type="number" />
+            </div>
+            <div class="app-form__row app-form__row--inline">
+              <label class="app-form__label">from <input class="app-form__input" id="r-ts-from" type="date" /></label>
+              <label class="app-form__label">to <input class="app-form__input" id="r-ts-to" type="date" /></label>
+            </div>
+            <button type="button" class="app-btn app-btn--primary" id="btn-teacher-rpt">Run</button>
+            <pre id="out-teacher"></pre>
+          </div>
+        </div>
+
+        <div id="panel-student" class="tab-panel app-card" style="display: none">
+          <div class="app-card__body app-form">
+            <div class="app-form__row">
+              <label class="app-form__label" for="r-student-id">student_id</label>
+              <input class="app-form__input" id="r-student-id" type="number" required />
+            </div>
+            <div class="app-form__row">
+              <label class="app-form__label" for="r-subject-id">subject_id (optional)</label>
+              <input class="app-form__input" id="r-subject-id" type="number" />
+            </div>
+            <div class="app-form__row app-form__row--inline">
+              <label class="app-form__label">from <input class="app-form__input" id="r-sa-from" type="date" /></label>
+              <label class="app-form__label">to <input class="app-form__input" id="r-sa-to" type="date" /></label>
+            </div>
+            <button type="button" class="app-btn app-btn--primary" id="btn-student-rpt">Run</button>
+            <pre id="out-student"></pre>
+          </div>
+        </div>
+
+        <div id="panel-branch" class="tab-panel app-card" style="display: none">
+          <div class="app-card__body app-form">
+            <div class="app-form__row">
+              <label class="app-form__label" for="r-branch-id">branch_id</label>
+              <input class="app-form__input" id="r-branch-id" type="number" required />
+            </div>
+            <div class="app-form__row app-form__row--inline">
+              <label class="app-form__label">from <input class="app-form__input" id="r-br-from" type="date" /></label>
+              <label class="app-form__label">to <input class="app-form__input" id="r-br-to" type="date" /></label>
+            </div>
+            <button type="button" class="app-btn app-btn--primary" id="btn-branch-rpt">Run</button>
+            <pre id="out-branch"></pre>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="js/pages/reports.js"></script>
+  </body>
+</html>

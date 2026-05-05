@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sign in — EduManage</title>
+    <link rel="stylesheet" href="styles/global.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <header data-nav></header>
+      <main>
+        <h1>Sign in</h1>
+        <p class="muted">Phone + password when <code>/auth/login/</code> is ready.</p>
+        <div id="banner"></div>
+        <form id="login-form" class="app-card">
+          <div class="app-card__body app-form">
+            <div class="app-form__row">
+              <label class="app-form__label" for="phone">Phone</label>
+              <input class="app-form__input" id="phone" name="phone" type="text" required />
+            </div>
+            <div class="app-form__row">
+              <label class="app-form__label" for="password">Password</label>
+              <input class="app-form__input" id="password" name="password" type="password" required />
+            </div>
+            <button type="submit" class="app-btn app-btn--primary">Sign in</button>
+          </div>
+        </form>
+        <div class="app-card">
+          <div class="app-card__body">
+            <h2 class="app-card__header" style="border: none; padding: 0; margin-bottom: 1rem">
+              Local development
+            </h2>
+            <p class="muted">Use until Member 1 ships JWT login.</p>
+            <p>
+              <button type="button" class="app-btn app-btn--ghost" id="dev-admin">Dev login as ADMIN</button>
+              <button type="button" class="app-btn app-btn--ghost" id="dev-teacher">Dev login as TEACHER</button>
+            </p>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="js/pages/login.js"></script>
+  </body>
+</html>

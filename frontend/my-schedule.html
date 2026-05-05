@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My schedule — EduManage</title>
+    <link rel="stylesheet" href="styles/global.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <header data-nav></header>
+      <main>
+        <h1>My schedule</h1>
+        <div id="banner"></div>
+        <div class="app-card">
+          <div class="app-card__body app-form__row--inline">
+            <label class="app-form__label">from <input class="app-form__input" id="from" type="date" /></label>
+            <label class="app-form__label">to <input class="app-form__input" id="to" type="date" /></label>
+            <button type="button" class="app-btn app-btn--primary" id="btn-load">Load</button>
+          </div>
+        </div>
+        <div class="app-card">
+          <div class="app-card__body app-table-wrap">
+            <table class="app-table" id="schedule-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Subject</th>
+                  <th>Who</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="js/pages/my-schedule.js"></script>
+  </body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lesson templates — EduManage</title>
+    <link rel="stylesheet" href="styles/global.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <header data-nav></header>
+      <main>
+        <h1>Lesson templates</h1>
+        <div id="banner"></div>
+
+        <div class="app-card">
+          <div class="app-card__header"><h2>New template</h2></div>
+          <div class="app-card__body">
+            <div class="app-form app-form--wide">
+              <div class="app-form__row app-form__row--inline">
+                <label><input type="radio" name="tpl_kind" value="individual" checked /> Individual</label>
+                <label><input type="radio" name="tpl_kind" value="group" /> Group</label>
+              </div>
+              <div class="app-form__row">
+                <label class="app-form__label" for="teacher_id">teacher_id</label>
+                <input class="app-form__input" id="teacher_id" type="number" required />
+              </div>
+              <div class="app-form__row">
+                <label class="app-form__label" for="subject_id">subject</label>
+                <select class="app-form__select" id="subject_id" required></select>
+              </div>
+              <div class="app-form__row" id="row-tpl-student">
+                <label class="app-form__label" for="student_id">student</label>
+                <select class="app-form__select" id="student_id"></select>
+              </div>
+              <div class="app-form__row" id="row-tpl-group" style="display: none">
+                <label class="app-form__label" for="group_id">group</label>
+                <select class="app-form__select" id="group_id"></select>
+              </div>
+              <div class="app-form__row">
+                <span class="app-form__label">Weekdays (ISO 1=Mon … 7=Sun)</span>
+                <div class="app-form__row--inline">
+                  <label><input type="checkbox" class="dow" value="1" /> Mon</label>
+                  <label><input type="checkbox" class="dow" value="2" /> Tue</label>
+                  <label><input type="checkbox" class="dow" value="3" /> Wed</label>
+                  <label><input type="checkbox" class="dow" value="4" /> Thu</label>
+                  <label><input type="checkbox" class="dow" value="5" /> Fri</label>
+                  <label><input type="checkbox" class="dow" value="6" /> Sat</label>
+                  <label><input type="checkbox" class="dow" value="7" /> Sun</label>
+                </div>
+              </div>
+              <div class="app-form__row app-form__row--inline">
+                <label class="app-form__label">start <input class="app-form__input" id="start_time" type="time" step="1" value="10:00:00" required /></label>
+                <label class="app-form__label">end <input class="app-form__input" id="end_time" type="time" step="1" value="11:00:00" required /></label>
+              </div>
+              <div class="app-form__row app-form__row--inline">
+                <label class="app-form__label">start_date <input class="app-form__input" id="start_date" type="date" required /></label>
+                <label class="app-form__label">end_date <input class="app-form__input" id="end_date" type="date" required /></label>
+              </div>
+              <div class="app-form__row">
+                <label><input type="checkbox" id="is_active" checked /> is_active</label>
+              </div>
+              <div class="app-form__row app-form__row--inline">
+                <button type="button" class="app-btn app-btn--primary" id="btn-create">Create template</button>
+                <button type="button" class="app-btn app-btn--ghost" id="btn-preview">Preview conflicts (no save)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="app-card__header"><h2>Templates</h2></div>
+          <div class="app-card__body app-table-wrap">
+            <table class="app-table" id="tpl-table">
+              <thead>
+                <tr><th>ID</th><th>Name</th><th>Period</th><th>Active</th><th></th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="app-card__header"><h2>Last API output</h2></div>
+          <div class="app-card__body"><pre id="gen-output" class="muted">—</pre></div>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="js/pages/lesson-templates.js"></script>
+  </body>
+</html>
