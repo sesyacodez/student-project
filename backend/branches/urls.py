@@ -1,6 +1,6 @@
 from rest_framework.routers import DefaultRouter
 
-from .api import SubjectViewSet
+from .views import SubjectViewSet
 
 router = DefaultRouter()
 router.register("subjects", SubjectViewSet, basename="subject")

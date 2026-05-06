@@ -1,6 +1,6 @@
 from rest_framework.routers import DefaultRouter
 
-from .api import PricingTierViewSet, StudentSubscriptionViewSet, SubscriptionPlanViewSet
+from .views import PricingTierViewSet, StudentSubscriptionViewSet, SubscriptionPlanViewSet
 
 router = DefaultRouter()
 router.register("subscription-plans", SubscriptionPlanViewSet, basename="subscription-plan")
