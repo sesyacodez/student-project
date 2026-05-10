@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Students — EduManage</title>
+    <link rel="stylesheet" href="styles/global.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <header data-nav></header>
+      <main>
+        <h1>Students</h1>
+        <p class="muted">Register students, update contacts, and keep branch assignments in sync.</p>
+        <div id="banner"></div>
+
+        <div class="app-card">
+          <div class="app-card__header"><h2>Filters</h2></div>
+          <div class="app-card__body app-form app-form--wide">
+            <div class="app-form__row app-form__row--inline">
+              <label class="app-form__label">
+                Branch
+                <select class="app-form__select" id="filter-student-branch"></select>
+              </label>
+              <label class="app-form__label">
+                Group
+                <select class="app-form__select" id="filter-student-group"></select>
+              </label>
+              <label class="app-form__label">
+                Status
+                <select class="app-form__select" id="filter-student-status">
+                  <option value="">Any</option>
+                  <option value="active">Active</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </label>
+            </div>
+            <div class="app-form__row app-form__row--inline">
+              <label class="app-form__label" for="filter-student-search">Search</label>
+              <input class="app-form__input" id="filter-student-search" type="search" placeholder="First or last name" />
+              <button type="button" class="app-btn app-btn--primary" id="btn-reload-students">Apply</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="app-card__header"><h2 id="student-form-title">Create student</h2></div>
+          <div class="app-card__body">
+            <form id="student-form" class="app-form app-form--wide">
+              <input id="student-id" type="hidden" />
+              <div class="app-form__row app-form__row--inline">
+                <label class="app-form__label">
+                  First name
+                  <input class="app-form__input" id="student-first-name" required />
+                </label>
+                <label class="app-form__label">
+                  Last name
+                  <input class="app-form__input" id="student-last-name" required />
+                </label>
+                <label class="app-form__label">
+                  Branch
+                  <select class="app-form__select" id="student-branch" required></select>
+                </label>
+                <label class="app-form__label">
+                  Status
+                  <select class="app-form__select" id="student-status">
+                    <option value="active">Active</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </label>
+              </div>
+              <div class="app-form__row app-form__row--inline">
+                <label class="app-form__label">
+                  Date of birth
+                  <input class="app-form__input" id="student-date-of-birth" type="date" />
+                </label>
+                <label class="app-form__label">
+                  Phone
+                  <input class="app-form__input" id="student-phone" type="text" />
+                </label>
+                <label class="app-form__label">
+                  Email
+                  <input class="app-form__input" id="student-email" type="email" />
+                </label>
+              </div>
+              <div class="app-form__row">
+                <label class="app-form__label">
+                  Address
+                  <input class="app-form__input" id="student-address" type="text" />
+                </label>
+              </div>
+              <div class="app-form__row app-form__row--inline">
+                <label class="app-form__label">
+                  Parent name
+                  <input class="app-form__input" id="student-parent-name" type="text" />
+                </label>
+                <label class="app-form__label">
+                  Parent phone
+                  <input class="app-form__input" id="student-parent-phone" type="text" />
+                </label>
+                <label class="app-form__label">
+                  Parent email
+                  <input class="app-form__input" id="student-parent-email" type="email" />
+                </label>
+                <label class="app-form__label">
+                  Relation
+                  <select class="app-form__select" id="student-parent-relation">
+                    <option value="">Unset</option>
+                    <option value="mother">Mother</option>
+                    <option value="father">Father</option>
+                    <option value="guardian">Guardian</option>
+                    <option value="other">Other</option>
+                  </select>
+                </label>
+              </div>
+              <div class="app-form__row app-form__row--inline">
+                <button type="submit" class="app-btn app-btn--primary" id="student-save">Create student</button>
+                <button type="button" class="app-btn app-btn--ghost" id="student-reset">Reset</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="app-card__header"><h2>Students list</h2></div>
+          <div class="app-card__body app-table-wrap">
+            <table class="app-table" id="students-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Branch</th>
+                  <th>Status</th>
+                  <th>Groups</th>
+                  <th>Parent</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="js/pages/students.js"></script>
+  </body>
+</html>
