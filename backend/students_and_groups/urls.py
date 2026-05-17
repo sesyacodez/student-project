@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from .api import GroupViewSet, StudentViewSet
+from .views import GroupViewSet, StudentViewSet
 
 router = DefaultRouter()
 router.register("students", StudentViewSet, basename="student")

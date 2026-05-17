@@ -24,6 +24,10 @@ export function renderNav() {
     inner += link("index.html", "Login", "index");
   } else if (user.role === "ADMIN") {
     inner += link("dashboard.html", "Home", "dashboard");
+    inner += link("students.html", "Students", "students"); //new*
+    inner += link("groups.html", "Groups", "groups"); //new*
+    inner += link("subscription-plans.html", "Plans", "subscription-plans"); //new*
+    inner += link("student-subscriptions.html", "Subscriptions", "student-subscriptions"); //new*
     inner += link("lessons.html", "Lessons", "lessons");
     inner += link("lesson-templates.html", "Templates", "lesson-templates");
     inner += link("reports.html", "Reports", "reports");

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Student Subscriptions — EduManage</title>
+    <link rel="stylesheet" href="styles/global.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <header data-nav></header>
+      <main>
+        <h1>Student subscriptions</h1>
+        <p class="muted">Assign a plan and subject to a student with a start date.</p>
+        <div id="banner"></div>
+
+        <div class="app-card">
+          <div class="app-card__header"><h2>Filters</h2></div>
+          <div class="app-card__body app-form app-form--wide">
+            <div class="app-form__row app-form__row--inline">
+              <label class="app-form__label">
+                Branch
+                <select class="app-form__select" id="filter-subscription-branch"></select>
+              </label>
+              <label class="app-form__label">
+                Student
+                <select class="app-form__select" id="filter-subscription-student"></select>
+              </label>
+              <label class="app-form__label">
+                Plan
+                <select class="app-form__select" id="filter-subscription-plan"></select>
+              </label>
+            </div>
+            <div class="app-form__row app-form__row--inline">
+              <label class="app-form__label">
+                Subject
+                <select class="app-form__select" id="filter-subscription-subject"></select>
+              </label>
+              <label class="app-form__label" for="filter-subscription-search">Search</label>
+              <input class="app-form__input" id="filter-subscription-search" type="search" placeholder="Student, plan, or subject" />
+              <button type="button" class="app-btn app-btn--primary" id="btn-reload-subscriptions">Apply</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="app-card__header"><h2 id="subscription-form-title">Create subscription</h2></div>
+          <div class="app-card__body">
+            <form id="subscription-form" class="app-form app-form--wide">
+              <input id="subscription-id" type="hidden" />
+              <div class="app-form__row app-form__row--inline">
+                <label class="app-form__label">
+                  Branch
+                  <select class="app-form__select" id="subscription-branch"></select>
+                </label>
+                <label class="app-form__label">
+                  Student
+                  <select class="app-form__select" id="subscription-student" required></select>
+                </label>
+                <label class="app-form__label">
+                  Plan
+                  <select class="app-form__select" id="subscription-plan" required></select>
+                </label>
+                <label class="app-form__label">
+                  Subject
+                  <select class="app-form__select" id="subscription-subject" required></select>
+                </label>
+              </div>
+              <div class="app-form__row app-form__row--inline">
+                <label class="app-form__label">
+                  Start date
+                  <input class="app-form__input" id="subscription-start-date" type="date" required />
+                </label>
+              </div>
+              <div class="app-form__row app-form__row--inline">
+                <button type="submit" class="app-btn app-btn--primary" id="subscription-save">Create subscription</button>
+                <button type="button" class="app-btn app-btn--ghost" id="subscription-reset">Reset</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="app-card__header"><h2>Subscriptions list</h2></div>
+          <div class="app-card__body app-table-wrap">
+            <table class="app-table" id="subscriptions-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Branch</th>
+                  <th>Plan</th>
+                  <th>Subject</th>
+                  <th>Start date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="js/pages/student-subscriptions.js"></script>
+  </body>
+</html>

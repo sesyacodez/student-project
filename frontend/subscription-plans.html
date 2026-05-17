@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Subscription Plans — EduManage</title>
+    <link rel="stylesheet" href="styles/global.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <header data-nav></header>
+      <main>
+        <h1>Subscription plans</h1>
+        <p class="muted">Define pricing grids per branch and link the plan to the right subjects.</p>
+        <div id="banner"></div>
+
+        <div class="app-card">
+          <div class="app-card__header"><h2>Filters</h2></div>
+          <div class="app-card__body app-form app-form--wide">
+            <div class="app-form__row app-form__row--inline">
+              <label class="app-form__label">
+                Branch
+                <select class="app-form__select" id="filter-plan-branch"></select>
+              </label>
+              <label class="app-form__label">
+                Type
+                <select class="app-form__select" id="filter-plan-type">
+                  <option value="">Any</option>
+                  <option value="individual">Individual</option>
+                  <option value="group">Group</option>
+                </select>
+              </label>
+              <label class="app-form__label">
+                Status
+                <select class="app-form__select" id="filter-plan-status">
+                  <option value="">Any</option>
+                  <option value="active">Active</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </label>
+            </div>
+            <div class="app-form__row app-form__row--inline">
+              <label class="app-form__label" for="filter-plan-search">Search</label>
+              <input class="app-form__input" id="filter-plan-search" type="search" placeholder="Plan name" />
+              <button type="button" class="app-btn app-btn--primary" id="btn-reload-plans">Apply</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="app-card__header"><h2 id="plan-form-title">Create plan</h2></div>
+          <div class="app-card__body">
+            <form id="plan-form" class="app-form app-form--wide">
+              <input id="plan-id" type="hidden" />
+              <div class="app-form__row app-form__row--inline">
+                <label class="app-form__label">
+                  Name
+                  <input class="app-form__input" id="plan-name" required />
+                </label>
+                <label class="app-form__label">
+                  Branch
+                  <select class="app-form__select" id="plan-branch" required></select>
+                </label>
+                <label class="app-form__label">
+                  Type
+                  <select class="app-form__select" id="plan-type" required>
+                    <option value="individual">Individual</option>
+                    <option value="group">Group</option>
+                  </select>
+                </label>
+                <label class="app-form__label">
+                  Status
+                  <select class="app-form__select" id="plan-status">
+                    <option value="active">Active</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </label>
+              </div>
+              <div class="app-form__row">
+                <label class="app-form__label">
+                  Subjects
+                  <select class="app-form__select" id="plan-subjects" multiple size="6"></select>
+                </label>
+                <small class="muted">Pick subjects from the same branch as the plan.</small>
+              </div>
+              <div class="app-form__row">
+                <div class="app-form__row app-form__row--inline" style="justify-content: space-between;">
+                  <strong>Pricing tiers</strong>
+                  <button type="button" class="app-btn app-btn--ghost" id="btn-add-tier-row">Add tier</button>
+                </div>
+                <div id="plan-tier-rows"></div>
+              </div>
+              <div class="app-form__row app-form__row--inline">
+                <button type="submit" class="app-btn app-btn--primary" id="plan-save">Create plan</button>
+                <button type="button" class="app-btn app-btn--ghost" id="plan-reset">Reset</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="app-card__header"><h2>Plans list</h2></div>
+          <div class="app-card__body app-table-wrap">
+            <table class="app-table" id="plans-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Branch</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Subjects</th>
+                  <th>Tiers</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="js/pages/subscription-plans.js"></script>
+  </body>
+</html>
