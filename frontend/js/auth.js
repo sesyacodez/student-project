@@ -42,30 +42,40 @@ export function isLoggedIn() {
 }
 
 /**
- * Real login when Member 1 ships POST /auth/login/.
- * On failure, throws with a safe message (no phone vs password hint).
+ * Real login to our Django backend.
  */
 export async function login(phone, password) {
-  const res = await fetch(`${API_BASE}/auth/login/`, {
+  const res = await fetch(`${API_BASE}/users/login/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ phone, password }),
   });
+  
   const data = await res.json().catch(() => ({}));
+  
   if (res.status === 404) {
     throw new Error(
-      "Login API is not available yet. Use “Dev login” below until /auth/login/ is deployed."
+      "Шлях API не знайдено. Перевірте, чи запущений сервер Django."
     );
   }
+  
   if (!res.ok) {
     const msg =
       data.message ||
       (typeof data.detail === "string" ? data.detail : null) ||
-      "Could not sign in. Check your phone and password.";
+      "Не вдалося увійти. Перевірте телефон та пароль.";
     throw new Error(msg);
   }
-  if (data.access) setTokens({ access: data.access, refresh: data.refresh });
-  if (data.user) setUser(data.user);
+  
+  if (data.access) {
+    setTokens({ access: data.access, refresh: data.refresh });
+    
+    setUser({
+      first_name: data.first_name,
+      role: data.role,
+      branch_id: data.branch_id
+    });
+  }
 }
 
 /** For local demo before JWT exists: navigate as ADMIN (API still AllowAny). */
