@@ -64,9 +64,11 @@ export async function request(path, options = {}) {
   if (options.body !== undefined && !headers["Content-Type"]) {
     headers["Content-Type"] = "application/json";
   }
+  let isDevToken = false;
   if (!skipAuth) {
     const token = getAccessToken();
-    if (token) headers["Authorization"] = `Bearer ${token}`;
+    isDevToken = token === "dev-local";
+    if (token && !isDevToken) headers["Authorization"] = `Bearer ${token}`;
   }
 
   const fetchOpts = {
@@ -79,6 +81,9 @@ export async function request(path, options = {}) {
   let res = await fetch(url, fetchOpts);
 
   if (res.status === 401 && !skipAuth) {
+    if (isDevToken) {
+      throw new ApiError("Dev token is not authorized", { status: 401 });
+    }
     if (!refreshPromise) {
       refreshPromise = tryRefresh().finally(() => {
         refreshPromise = null;
