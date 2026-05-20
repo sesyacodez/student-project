@@ -1,4 +1,4 @@
-"""Scheduling business logic shared by models and the REST API."""
+"""Scheduling бізнес логіка"""
 
 from django.db.models import Q
 from rest_framework.exceptions import APIException
@@ -38,7 +38,7 @@ def check_conflicts(
     end_time,
     exclude_lesson_id=None,
 ):
-    """Return ids of non-cancelled lessons that overlap the slot for teacher or any student."""
+    """повертає ID не скасованих уроків які перетинаються з вказаним уроком"""
     from scheduling.models import Lesson
 
     qs = Lesson.objects.filter(date=date).exclude(status="cancelled")
