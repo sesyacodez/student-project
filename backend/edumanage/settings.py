@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 import drf_spectacular
@@ -27,7 +28,7 @@ SECRET_KEY = 'django-insecure-9-kpqdr7-mko(%%!yi*%mw1z#qv0ixo!nnudzpir+evw4_!vlq
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost 127.0.0.1 [::1]').split()
 
 
 # Application definition
