@@ -4,14 +4,19 @@ from django.db.models import Count, Q
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied, ValidationError
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from students_and_groups.models import Student, StudentStatus
 
 from . import services
 from .models import Attendance, Lesson, LessonStatus, LessonTemplate
-from .permissions import is_admin_user, is_teacher_user
+from .permissions import (
+    IsAdminOrLessonTeacher,
+    IsAdminOrTeacherUserRole,
+    IsAdminUserRole,
+    is_teacher_user,
+)
 from .serializers import (
     AttendanceBatchSerializer,
     AttendancePatchSerializer,
@@ -61,8 +66,20 @@ class LessonViewSet(
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
-    permission_classes = [AllowAny]
-    authentication_classes = []
+    permission_classes = [IsAuthenticated, IsAdminOrTeacherUserRole]
+
+    def get_permissions(self):
+        if self.action in (
+            "create",
+            "update",
+            "partial_update",
+            "cancel",
+            "conflicts_check",
+        ):
+            return [IsAuthenticated(), IsAdminUserRole()]
+        if self.action in ("complete", "attendance_collection"):
+            return [IsAuthenticated(), IsAdminOrLessonTeacher()]
+        return [permission() for permission in self.permission_classes]
 
     def get_serializer_class(self):
         if self.action in ("create", "update", "partial_update"):
@@ -124,8 +141,6 @@ class LessonViewSet(
         return queryset.distinct()
 
     def create(self, request, *args, **kwargs):
-        if request.user.is_authenticated and is_teacher_user(request.user):
-            raise PermissionDenied("Teachers cannot create lessons.")
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         lesson = serializer.save()
@@ -135,8 +150,6 @@ class LessonViewSet(
         return Response(read.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
-        if request.user.is_authenticated and is_teacher_user(request.user):
-            raise PermissionDenied("Teachers cannot edit lessons.")
         partial = kwargs.pop("partial", False)
         instance = self.get_object()
         serializer = self.get_serializer(
@@ -151,8 +164,6 @@ class LessonViewSet(
 
     @action(detail=True, methods=["post"])
     def cancel(self, request, pk=None):
-        if request.user.is_authenticated and is_teacher_user(request.user):
-            raise PermissionDenied("Teachers cannot cancel lessons.")
         lesson = self.get_object()
         lesson.status = LessonStatus.CANCELLED
         lesson.save(update_fields=["status"])
@@ -165,11 +176,6 @@ class LessonViewSet(
     @action(detail=True, methods=["post"])
     def complete(self, request, pk=None):
         lesson = self.get_object()
-        if request.user.is_authenticated:
-            if is_teacher_user(request.user) and lesson.teacher_id != request.user.pk:
-                raise PermissionDenied(
-                    "You can only complete your own lessons."
-                )
         if lesson.status == LessonStatus.CANCELLED:
             raise ValidationError(
                 {"detail": "Cannot complete a cancelled lesson."}
@@ -184,8 +190,6 @@ class LessonViewSet(
 
     @action(detail=False, methods=["post"], url_path="conflicts/check")
     def conflicts_check(self, request):
-        if request.user.is_authenticated and is_teacher_user(request.user):
-            raise PermissionDenied()
         serializer = ConflictCheckSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         ids = serializer.validated_data.get("conflict_lesson_ids", [])
@@ -194,11 +198,6 @@ class LessonViewSet(
     @action(detail=True, methods=["get", "put"], url_path="attendance")
     def attendance_collection(self, request, pk=None):
         lesson = self.get_object()
-        if request.user.is_authenticated:
-            if is_teacher_user(request.user) and lesson.teacher_id != request.user.pk:
-                raise PermissionDenied(
-                    "You can only access attendance for your own lessons."
-                )
         if request.method == "GET":
             records = lesson.attendance_records.select_related(
                 "student__branch"
@@ -216,8 +215,7 @@ class LessonViewSet(
 
 
 class LessonTemplateViewSet(viewsets.ModelViewSet):
-    permission_classes = [AllowAny]
-    authentication_classes = []
+    permission_classes = [IsAuthenticated, IsAdminUserRole]
 
     def get_queryset(self):
         queryset = (
@@ -257,13 +255,6 @@ class LessonTemplateViewSet(viewsets.ModelViewSet):
         if self.action in ("create", "update", "partial_update"):
             return LessonTemplateWriteSerializer
         return LessonTemplateReadSerializer
-
-    def initial(self, request, *args, **kwargs):
-        super().initial(request, *args, **kwargs)
-        if request.user.is_authenticated and is_teacher_user(request.user):
-            raise PermissionDenied(
-                "Teachers cannot access lesson templates via the API."
-            )
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -401,8 +392,7 @@ class LessonTemplateViewSet(viewsets.ModelViewSet):
 
 class AttendanceViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet):
     serializer_class = AttendancePatchSerializer
-    permission_classes = [AllowAny]
-    authentication_classes = []
+    permission_classes = [IsAuthenticated, IsAdminOrLessonTeacher]
     queryset = Attendance.objects.select_related(
         "lesson", "lesson__teacher", "student"
     )
@@ -415,7 +405,7 @@ class AttendanceViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet):
 
 
 @api_view(["GET"])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated, IsAdminOrTeacherUserRole])
 def teacher_schedule_report(request):
     teacher_id = request.query_params.get("teacher_id")
     date_from = request.query_params.get("date_from")
@@ -448,7 +438,7 @@ def teacher_schedule_report(request):
 
 
 @api_view(["GET"])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated, IsAdminOrTeacherUserRole])
 def student_attendance_report(request):
     student_id = request.query_params.get("student_id")
     subject_id = request.query_params.get("subject_id")
@@ -502,11 +492,8 @@ def student_attendance_report(request):
 
 
 @api_view(["GET"])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated, IsAdminUserRole])
 def branch_stats_report(request):
-    if not request.user.is_authenticated or not is_admin_user(request.user):
-        raise PermissionDenied("Only administrators can view branch stats.")
-
     branch_id = request.query_params.get("branch_id")
     if not branch_id:
         raise ValidationError({"branch_id": "Required."})
