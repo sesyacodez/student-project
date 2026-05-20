@@ -27,13 +27,6 @@ class UserSerializer(serializers.ModelSerializer):
             'password': {'write_only': True} 
         }
 
-    def validate(self, attrs):
-        instance = getattr(self, 'instance', None)
-        if instance and instance.role == 'ADMIN':
-            if attrs.get('is_active') is False:
-                raise serializers.ValidationError('Admin accounts cannot be deactivated.')
-        return attrs
-
     def create(self, validated_data):
         user = User(**validated_data)
         user.set_password(validated_data['password'])

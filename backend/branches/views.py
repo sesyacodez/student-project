@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from users.permissions import IsAdminRole
-from .models import Branch, BranchStatus, Subject, SubjectStatus
+from .models import Branch, Subject, SubjectStatus
 from .serializers import BranchSerializer, SubjectSerializer
 
 class BranchViewSet(viewsets.ModelViewSet):
@@ -15,40 +15,11 @@ class BranchViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         current_user = self.request.user
-        queryset = Branch.objects.all()
-        if not current_user.is_superuser:
-            if current_user.branch_id:
-                queryset = queryset.filter(id=current_user.branch_id)
-            else:
-                return Branch.objects.none()
-
-        params = self.request.query_params
-        status_value = _normalize_choice(params.get("status"), BranchStatus.values, "status")
-        city = params.get("city")
-        search = params.get("search")
-
-        if status_value:
-            queryset = queryset.filter(status=status_value)
-        if city:
-            queryset = queryset.filter(city__icontains=city)
-        if search:
-            queryset = queryset.filter(Q(name__icontains=search) | Q(address__icontains=search))
-
-        return queryset.distinct()
-
-    @action(detail=True, methods=["post"])
-    def archive(self, request, pk=None):
-        branch = self.get_object()
-        branch.status = BranchStatus.ARCHIVED
-        branch.save(update_fields=["status"])
-        return Response(self.get_serializer(branch).data)
-
-    @action(detail=True, methods=["post"])
-    def restore(self, request, pk=None):
-        branch = self.get_object()
-        branch.status = BranchStatus.ACTIVE
-        branch.save(update_fields=["status"])
-        return Response(self.get_serializer(branch).data)
+        if current_user.is_superuser:
+            return Branch.objects.all()
+        if current_user.branch:
+            return Branch.objects.filter(id=current_user.branch.id)
+        return Branch.objects.none()
 
 
 def _normalize_choice(value, allowed_values, field_name):
