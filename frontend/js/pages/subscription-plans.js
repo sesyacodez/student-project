@@ -170,14 +170,18 @@ if (!requireRole(["ADMIN"])) {
     }
 
     async function loadOptions() {
-      const [branches, subjects] = await Promise.all([
-        requestList("/branches/"),
-        requestList("/subjects/"),
-      ]);
-      allSubjects = subjects;
-      populateSelect(branchSelect, branches, "Choose branch", (branch) => `${branch.name} (${branch.city})`);
-      populateSelect(filterBranch, branches, "All branches", (branch) => `${branch.name} (${branch.city})`);
-      renderSubjectOptions();
+      try {
+        const [branches, subjects] = await Promise.all([
+          requestList("/branches/"),
+          requestList("/subjects/"),
+        ]);
+        allSubjects = subjects;
+        populateSelect(branchSelect, branches, "Choose branch", (branch) => `${branch.name} (${branch.city})`);
+        populateSelect(filterBranch, branches, "All branches", (branch) => `${branch.name} (${branch.city})`);
+        renderSubjectOptions();
+      } catch (error) {
+        showBanner(banner, formatApiError(error));
+      }
     }
 
     async function loadPlans() {

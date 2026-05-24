@@ -44,6 +44,7 @@ class Student(models.Model):
         max_length=20,
         choices=StudentStatus.choices,
         default=StudentStatus.ACTIVE,
+        db_index=True,
     )
 
     class Meta:
@@ -69,6 +70,7 @@ class Group(models.Model):
         max_length=20,
         choices=GroupStatus.choices,
         default=GroupStatus.ACTIVE,
+        db_index=True,
     )
 
     def add_student(self, student, join_date=None):

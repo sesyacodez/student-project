@@ -21,11 +21,12 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         current_user = self.request.user
-        
+        queryset = User.objects.select_related("branch")
+
         if current_user.is_superuser:
-            return User.objects.all()
-            
+            return queryset
+
         if current_user.branch:
-            return User.objects.filter(branch=current_user.branch)
-            
-        return User.objects.none()
+            return queryset.filter(branch=current_user.branch)
+
+        return queryset.none()

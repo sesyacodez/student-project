@@ -13,6 +13,20 @@ if (!requireRole(["ADMIN"])) {
     const selSubject = document.getElementById("subject_id");
     const selStudent = document.getElementById("student_id");
     const selGroup = document.getElementById("group_id");
+    const selTeacher = document.getElementById("teacher_id");
+
+    function teacherLabel(user) {
+      const name = `${user.first_name || ""} ${user.last_name || ""}`.trim();
+      return `${name || user.phone || "User"} (${user.role})`;
+    }
+
+    function populateSelect(select, items, placeholder, labelFn) {
+      select.innerHTML =
+        `<option value="">${escape(placeholder)}</option>` +
+        items
+          .map((item) => `<option value="${item.id}">${escape(labelFn(item))}</option>`)
+          .join("");
+    }
 
     function escape(s) {
       return String(s)
@@ -22,28 +36,40 @@ if (!requireRole(["ADMIN"])) {
     }
 
     async function loadDropdowns() {
-      const subjects = await requestList("/subjects/");
-      selSubject.innerHTML =
-        '<option value="">— subject —</option>' +
-        subjects
-          .map(
-            (s) =>
-              `<option value="${s.id}">${escape(s.name)}</option>`
-          )
-          .join("");
-      const students = await requestList("/students/");
-      selStudent.innerHTML =
-        '<option value="">— none —</option>' +
-        students
-          .map(
-            (s) =>
-              `<option value="${s.id}">${escape(s.first_name)} ${escape(s.last_name)}</option>`
-          )
-          .join("");
-      const groups = await requestList("/groups/");
-      selGroup.innerHTML =
-        '<option value="">— none —</option>' +
-        groups.map((g) => `<option value="${g.id}">${escape(g.name)}</option>`).join("");
+      try {
+        const [subjects, students, groups, users] = await Promise.all([
+          requestList("/subjects/"),
+          requestList("/students/"),
+          requestList("/groups/"),
+          requestList("/users/"),
+        ]);
+        const teachers = users.filter(
+          (user) => user.role === "TEACHER" || user.role === "ADMIN"
+        );
+
+        selSubject.innerHTML =
+          '<option value="">— subject —</option>' +
+          subjects
+            .map(
+              (s) =>
+                `<option value="${s.id}">${escape(s.name)}</option>`
+            )
+            .join("");
+        selStudent.innerHTML =
+          '<option value="">— none —</option>' +
+          students
+            .map(
+              (s) =>
+                `<option value="${s.id}">${escape(s.first_name)} ${escape(s.last_name)}</option>`
+            )
+            .join("");
+        selGroup.innerHTML =
+          '<option value="">— none —</option>' +
+          groups.map((g) => `<option value="${g.id}">${escape(g.name)}</option>`).join("");
+        populateSelect(selTeacher, teachers, "— teacher —", teacherLabel);
+      } catch (e) {
+        showBanner(banner, formatApiError(e));
+      }
     }
 
     function selectedWeekdays() {
@@ -54,7 +80,7 @@ if (!requireRole(["ADMIN"])) {
     function templatePayload() {
       const kind = document.querySelector('input[name="tpl_kind"]:checked')?.value;
       const body = {
-        teacher_id: parseInt(document.getElementById("teacher_id").value, 10),
+        teacher_id: parseInt(selTeacher.value, 10),
         subject_id: parseInt(selSubject.value, 10),
         days_of_week: selectedWeekdays(),
         start_time: document.getElementById("start_time").value,

@@ -31,6 +31,49 @@ async function parseBody(res) {
   }
 }
 
+function flattenValidationErrors(body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return null;
+  }
+
+  const lines = [];
+  for (const [key, value] of Object.entries(body)) {
+    if (key === "code" || key === "message" || key === "details") {
+      continue;
+    }
+    if (Array.isArray(value)) {
+      lines.push(`${key}: ${value.join("; ")}`);
+    } else if (value && typeof value === "object") {
+      const nested = flattenValidationErrors(value);
+      if (nested) {
+        lines.push(`${key}: ${nested}`);
+      }
+    } else if (value != null && value !== "") {
+      lines.push(`${key}: ${String(value)}`);
+    }
+  }
+  return lines.length ? lines.join("\n") : null;
+}
+
+function messageFromBody(parsed) {
+  if (!parsed || typeof parsed !== "object") {
+    return null;
+  }
+  if (typeof parsed.message === "string" && parsed.message) {
+    return parsed.message;
+  }
+  if (typeof parsed.detail === "string" && parsed.detail) {
+    return parsed.detail;
+  }
+  if (Array.isArray(parsed.detail)) {
+    return parsed.detail.join("; ");
+  }
+  if (Array.isArray(parsed.non_field_errors)) {
+    return parsed.non_field_errors.join("; ");
+  }
+  return flattenValidationErrors(parsed);
+}
+
 async function tryRefresh() {
   const refresh = getRefreshToken();
   if (!refresh) return false;
@@ -106,11 +149,7 @@ export async function request(path, options = {}) {
 
   const parsed = await parseBody(res);
   if (!res.ok) {
-    let msg = res.statusText || "Request failed";
-    if (parsed && typeof parsed === "object") {
-      if (parsed.message) msg = parsed.message;
-      else if (typeof parsed.detail === "string") msg = parsed.detail;
-    }
+    const msg = messageFromBody(parsed) || res.statusText || "Request failed";
     throw new ApiError(msg, { status: res.status, body: parsed });
   }
   return parsed;

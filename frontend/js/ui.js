@@ -20,6 +20,30 @@ export function clearBanner(container) {
   if (container) container.innerHTML = "";
 }
 
+function flattenValidationErrors(body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return null;
+  }
+
+  const lines = [];
+  for (const [key, value] of Object.entries(body)) {
+    if (key === "code" || key === "message" || key === "details") {
+      continue;
+    }
+    if (Array.isArray(value)) {
+      lines.push(`${key}: ${value.join("; ")}`);
+    } else if (value && typeof value === "object") {
+      const nested = flattenValidationErrors(value);
+      if (nested) {
+        lines.push(`${key}: ${nested}`);
+      }
+    } else if (value != null && value !== "") {
+      lines.push(`${key}: ${String(value)}`);
+    }
+  }
+  return lines.length ? lines.join("\n") : null;
+}
+
 /** @param {unknown} err */
 export function formatApiError(err) {
   if (err instanceof ApiError && err.body && typeof err.body === "object") {
@@ -43,7 +67,22 @@ export function formatApiError(err) {
       });
       return [b.message, ...lines].join("\n");
     }
-    if (b.message) return b.message;
+    if (typeof b.message === "string" && b.message) {
+      return b.message;
+    }
+    if (typeof b.detail === "string" && b.detail) {
+      return b.detail;
+    }
+    if (Array.isArray(b.detail)) {
+      return b.detail.join("; ");
+    }
+    if (Array.isArray(b.non_field_errors)) {
+      return b.non_field_errors.join("; ");
+    }
+    const fieldErrors = flattenValidationErrors(b);
+    if (fieldErrors) {
+      return fieldErrors;
+    }
   }
   if (err instanceof Error) return err.message;
   return String(err);

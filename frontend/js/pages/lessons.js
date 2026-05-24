@@ -19,11 +19,14 @@ const form = document.getElementById("lesson-form");
 const selSubject = document.getElementById("subject_id");
 const selStudent = document.getElementById("student_id");
 const selGroup = document.getElementById("group_id");
+const selTeacher = document.getElementById("teacher_id");
+const filterBranch = document.getElementById("filter-branch");
+const filterTeacher = document.getElementById("filter-teacher");
 
 function filterQuery() {
   const p = new URLSearchParams();
-  const branchId = document.getElementById("filter-branch").value.trim();
-  const teacherId = document.getElementById("filter-teacher").value.trim();
+  const branchId = filterBranch.value;
+  const teacherId = filterTeacher.value;
   const status = document.getElementById("filter-status").value.trim();
   const from = document.getElementById("filter-from").value;
   const to = document.getElementById("filter-to").value;
@@ -34,6 +37,19 @@ function filterQuery() {
   if (to) p.set("date_to", to);
   const s = p.toString();
   return s ? `?${s}` : "";
+}
+
+function teacherLabel(user) {
+  const name = `${user.first_name || ""} ${user.last_name || ""}`.trim();
+  return `${name || user.phone || "User"} (${user.role})`;
+}
+
+function populateSelect(select, items, placeholder, labelFn) {
+  select.innerHTML =
+    `<option value="">${escape(placeholder)}</option>` +
+    items
+      .map((item) => `<option value="${item.id}">${escape(labelFn(item))}</option>`)
+      .join("");
 }
 
 function participantLabel(lesson) {
@@ -76,7 +92,17 @@ function escape(s) {
 
 async function loadDropdowns() {
   try {
-    const subjects = await requestList("/subjects/");
+    const [subjects, students, groups, branches, users] = await Promise.all([
+      requestList("/subjects/"),
+      requestList("/students/"),
+      requestList("/groups/"),
+      requestList("/branches/"),
+      requestList("/users/"),
+    ]);
+    const teachers = users.filter(
+      (user) => user.role === "TEACHER" || user.role === "ADMIN"
+    );
+
     selSubject.innerHTML =
       '<option value="">— subject —</option>' +
       subjects
@@ -86,7 +112,6 @@ async function loadDropdowns() {
         )
         .join("");
 
-    const students = await requestList("/students/");
     selStudent.innerHTML =
       '<option value="">— none —</option>' +
       students
@@ -96,12 +121,15 @@ async function loadDropdowns() {
         )
         .join("");
 
-    const groups = await requestList("/groups/");
     selGroup.innerHTML =
       '<option value="">— none —</option>' +
       groups
         .map((g) => `<option value="${g.id}">${escape(g.name)}</option>`)
         .join("");
+
+    populateSelect(selTeacher, teachers, "— teacher —", teacherLabel);
+    populateSelect(filterBranch, branches, "Any branch", (branch) => `${branch.name} (${branch.city})`);
+    populateSelect(filterTeacher, teachers, "Any teacher", teacherLabel);
   } catch (e) {
     showBanner(banner, formatApiError(e));
   }
@@ -153,8 +181,8 @@ async function completeLesson(id) {
 }
 
 function lessonPayload() {
-  const teacherId = Number(document.getElementById("teacher_id").value, 10);
-  const subjectId = Number(selSubject.value, 10);
+  const teacherId = parseInt(selTeacher.value, 10);
+  const subjectId = parseInt(selSubject.value, 10);
   const date = document.getElementById("date").value;
   const startTime = document.getElementById("start_time").value;
   const endTime = document.getElementById("end_time").value;
@@ -168,10 +196,10 @@ function lessonPayload() {
     end_time: endTime,
   };
   if (kind === "group") {
-    body.group_id = Number(selGroup.value, 10);
+    body.group_id = parseInt(selGroup.value, 10);
     body.student_id = null;
   } else {
-    body.student_id = Number(selStudent.value, 10);
+    body.student_id = parseInt(selStudent.value, 10);
     body.group_id = null;
   }
   return body;
