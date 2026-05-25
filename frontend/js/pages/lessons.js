@@ -1,7 +1,7 @@
 import { requireRole } from "../auth.js";
 import { request, requestList, ApiError } from "../http.js";
 import { renderNav } from "../nav.js";
-import { clearBanner, formatApiError, showBanner } from "../ui.js";
+import { clearBanner, escapeHtml, formatApiError, showBanner } from "../ui.js";
 
 renderNav();
 if (!requireRole(["ADMIN"])) {
@@ -46,9 +46,9 @@ function teacherLabel(user) {
 
 function populateSelect(select, items, placeholder, labelFn) {
   select.innerHTML =
-    `<option value="">${escape(placeholder)}</option>` +
+    `<option value="">${escapeHtml(placeholder)}</option>` +
     items
-      .map((item) => `<option value="${item.id}">${escape(labelFn(item))}</option>`)
+      .map((item) => `<option value="${item.id}">${escapeHtml(labelFn(item))}</option>`)
       .join("");
 }
 
@@ -70,10 +70,10 @@ function renderRow(lesson) {
   return `<tr>
     <td>${lesson.date}</td>
     <td>${lesson.start_time}–${lesson.end_time}</td>
-    <td>${escape(subj)}</td>
-    <td>${escape(tchr)}</td>
-    <td>${escape(participantLabel(lesson))}</td>
-    <td>${escape(lesson.status)}</td>
+    <td>${escapeHtml(subj)}</td>
+    <td>${escapeHtml(tchr)}</td>
+    <td>${escapeHtml(participantLabel(lesson))}</td>
+    <td>${escapeHtml(lesson.status)}</td>
     <td>
       <a class="app-btn app-btn--ghost" href="lesson-detail.html?id=${lesson.id}">View</a>
       <a class="app-btn app-btn--ghost" href="attendance.html?lesson_id=${lesson.id}">Attendance</a>
@@ -81,13 +81,6 @@ function renderRow(lesson) {
       <button type="button" class="app-btn app-btn--primary" data-complete="${lesson.id}">Complete</button>
     </td>
   </tr>`;
-}
-
-function escape(s) {
-  return String(s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/"/g, "&quot;");
 }
 
 async function loadDropdowns() {
@@ -108,7 +101,7 @@ async function loadDropdowns() {
       subjects
         .map(
           (s) =>
-            `<option value="${s.id}">${escape(s.name)} (branch ${s.branch?.id ?? "?"})</option>`
+            `<option value="${s.id}">${escapeHtml(s.name)} (branch ${s.branch?.id ?? "?"})</option>`
         )
         .join("");
 
@@ -117,14 +110,14 @@ async function loadDropdowns() {
       students
         .map(
           (s) =>
-            `<option value="${s.id}">${escape(s.first_name)} ${escape(s.last_name)}</option>`
+            `<option value="${s.id}">${escapeHtml(s.first_name)} ${escapeHtml(s.last_name)}</option>`
         )
         .join("");
 
     selGroup.innerHTML =
       '<option value="">— none —</option>' +
       groups
-        .map((g) => `<option value="${g.id}">${escape(g.name)}</option>`)
+        .map((g) => `<option value="${g.id}">${escapeHtml(g.name)}</option>`)
         .join("");
 
     populateSelect(selTeacher, teachers, "— teacher —", teacherLabel);

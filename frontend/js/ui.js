@@ -1,4 +1,4 @@
-import { ApiError } from "./http.js";
+import { ApiError, flattenValidationErrors } from "./http.js";
 
 export function escapeHtml(s) {
   return String(s)
@@ -18,30 +18,6 @@ export function showBanner(container, message, kind = "error") {
 
 export function clearBanner(container) {
   if (container) container.innerHTML = "";
-}
-
-function flattenValidationErrors(body) {
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
-    return null;
-  }
-
-  const lines = [];
-  for (const [key, value] of Object.entries(body)) {
-    if (key === "code" || key === "message" || key === "details") {
-      continue;
-    }
-    if (Array.isArray(value)) {
-      lines.push(`${key}: ${value.join("; ")}`);
-    } else if (value && typeof value === "object") {
-      const nested = flattenValidationErrors(value);
-      if (nested) {
-        lines.push(`${key}: ${nested}`);
-      }
-    } else if (value != null && value !== "") {
-      lines.push(`${key}: ${String(value)}`);
-    }
-  }
-  return lines.length ? lines.join("\n") : null;
 }
 
 /** @param {unknown} err */

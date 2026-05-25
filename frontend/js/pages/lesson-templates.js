@@ -1,7 +1,7 @@
 import { requireRole } from "../auth.js";
 import { request, requestList } from "../http.js";
 import { renderNav } from "../nav.js";
-import { clearBanner, formatApiError, showBanner } from "../ui.js";
+import { clearBanner, escapeHtml, formatApiError, showBanner } from "../ui.js";
 
 renderNav();
 if (!requireRole(["ADMIN"])) {
@@ -22,17 +22,10 @@ if (!requireRole(["ADMIN"])) {
 
     function populateSelect(select, items, placeholder, labelFn) {
       select.innerHTML =
-        `<option value="">${escape(placeholder)}</option>` +
-        items
-          .map((item) => `<option value="${item.id}">${escape(labelFn(item))}</option>`)
+        `<option value="">${escapeHtml(placeholder)}</option>` +
+          items
+          .map((item) => `<option value="${item.id}">${escapeHtml(labelFn(item))}</option>`)
           .join("");
-    }
-
-    function escape(s) {
-      return String(s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/"/g, "&quot;");
     }
 
     async function loadDropdowns() {
@@ -52,7 +45,7 @@ if (!requireRole(["ADMIN"])) {
           subjects
             .map(
               (s) =>
-                `<option value="${s.id}">${escape(s.name)}</option>`
+                `<option value="${s.id}">${escapeHtml(s.name)}</option>`
             )
             .join("");
         selStudent.innerHTML =
@@ -60,12 +53,12 @@ if (!requireRole(["ADMIN"])) {
           students
             .map(
               (s) =>
-                `<option value="${s.id}">${escape(s.first_name)} ${escape(s.last_name)}</option>`
+                `<option value="${s.id}">${escapeHtml(s.first_name)} ${escapeHtml(s.last_name)}</option>`
             )
             .join("");
         selGroup.innerHTML =
           '<option value="">— none —</option>' +
-          groups.map((g) => `<option value="${g.id}">${escape(g.name)}</option>`).join("");
+          groups.map((g) => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join("");
         populateSelect(selTeacher, teachers, "— teacher —", teacherLabel);
       } catch (e) {
         showBanner(banner, formatApiError(e));
@@ -111,7 +104,7 @@ if (!requireRole(["ADMIN"])) {
           .map(
             (t) => `<tr>
           <td>${t.id}</td>
-          <td>${escape(t.name)}</td>
+          <td>${escapeHtml(t.name)}</td>
           <td>${t.start_date} → ${t.end_date}</td>
           <td>${t.is_active ? "yes" : "no"}</td>
           <td>

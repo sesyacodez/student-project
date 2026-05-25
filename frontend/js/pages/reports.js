@@ -1,7 +1,7 @@
 import { getUser, requireRole } from "../auth.js";
 import { request, requestList } from "../http.js";
 import { renderNav } from "../nav.js";
-import { clearBanner, formatApiError, showBanner } from "../ui.js";
+import { clearBanner, escapeHtml, formatApiError, showBanner } from "../ui.js";
 
 renderNav();
 if (!requireRole(["ADMIN", "TEACHER"])) {
@@ -17,20 +17,13 @@ if (!requireRole(["ADMIN", "TEACHER"])) {
     const selSubject = document.getElementById("r-subject-id");
     const selBranch = document.getElementById("r-branch-id");
 
-    function escape(s) {
-      return String(s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/"/g, "&quot;");
-    }
-
     function populateSelect(select, items, placeholder, labelFn) {
       select.innerHTML =
-        `<option value="">${escape(placeholder)}</option>` +
+        `<option value="">${escapeHtml(placeholder)}</option>` +
         items
           .map(
             (item) =>
-              `<option value="${item.id}">${escape(labelFn(item))}</option>`
+              `<option value="${item.id}">${escapeHtml(labelFn(item))}</option>`
           )
           .join("");
     }

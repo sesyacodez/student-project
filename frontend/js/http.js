@@ -31,7 +31,7 @@ async function parseBody(res) {
   }
 }
 
-function flattenValidationErrors(body) {
+export function flattenValidationErrors(body) {
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return null;
   }
