@@ -1,7 +1,7 @@
 import { getUser, requireRole } from "../auth.js";
 import { request, requestList } from "../http.js";
 import { renderNav } from "../nav.js";
-import { clearBanner, formatApiError, showBanner } from "../ui.js";
+import { clearBanner, escapeHtml, formatApiError, showBanner } from "../ui.js";
 
 renderNav();
 
@@ -80,7 +80,7 @@ if (!lessonId) {
         const st = cur ? cur.status : "present";
         const note = cur && cur.note ? cur.note : "";
         return `<tr data-student-id="${p.id}">
-        <td>${escape(p.name)}</td>
+        <td>${escapeHtml(p.name)}</td>
         <td>
           <select class="app-form__select att-status" data-id="${p.id}">
             <option value="present" ${st === "present" ? "selected" : ""}>present</option>
@@ -126,13 +126,6 @@ if (!lessonId) {
   })();
 }
 
-function escape(s) {
-  return String(s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/"/g, "&quot;");
-}
-
 function escapeAttr(s) {
-  return escape(s).replace(/'/g, "&#39;");
+  return escapeHtml(s).replace(/'/g, "&#39;");
 }

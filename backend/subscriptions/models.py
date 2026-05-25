@@ -34,6 +34,7 @@ class SubscriptionPlan(models.Model):
         max_length=20,
         choices=SubscriptionPlanStatus.choices,
         default=SubscriptionPlanStatus.ACTIVE,
+        db_index=True,
     )
 
     def __str__(self):

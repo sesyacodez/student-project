@@ -1,7 +1,7 @@
 import { requireRole } from "../auth.js";
 import { request, requestList } from "../http.js";
 import { renderNav } from "../nav.js";
-import { clearBanner, formatApiError, showBanner } from "../ui.js";
+import { clearBanner, escapeHtml, formatApiError, showBanner } from "../ui.js";
 
 renderNav();
 if (!requireRole(["ADMIN"])) {
@@ -13,37 +13,56 @@ if (!requireRole(["ADMIN"])) {
     const selSubject = document.getElementById("subject_id");
     const selStudent = document.getElementById("student_id");
     const selGroup = document.getElementById("group_id");
+    const selTeacher = document.getElementById("teacher_id");
 
-    function escape(s) {
-      return String(s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/"/g, "&quot;");
+    function teacherLabel(user) {
+      const name = `${user.first_name || ""} ${user.last_name || ""}`.trim();
+      return `${name || user.phone || "User"} (${user.role})`;
+    }
+
+    function populateSelect(select, items, placeholder, labelFn) {
+      select.innerHTML =
+        `<option value="">${escapeHtml(placeholder)}</option>` +
+          items
+          .map((item) => `<option value="${item.id}">${escapeHtml(labelFn(item))}</option>`)
+          .join("");
     }
 
     async function loadDropdowns() {
-      const subjects = await requestList("/subjects/");
-      selSubject.innerHTML =
-        '<option value="">— subject —</option>' +
-        subjects
-          .map(
-            (s) =>
-              `<option value="${s.id}">${escape(s.name)}</option>`
-          )
-          .join("");
-      const students = await requestList("/students/");
-      selStudent.innerHTML =
-        '<option value="">— none —</option>' +
-        students
-          .map(
-            (s) =>
-              `<option value="${s.id}">${escape(s.first_name)} ${escape(s.last_name)}</option>`
-          )
-          .join("");
-      const groups = await requestList("/groups/");
-      selGroup.innerHTML =
-        '<option value="">— none —</option>' +
-        groups.map((g) => `<option value="${g.id}">${escape(g.name)}</option>`).join("");
+      try {
+        const [subjects, students, groups, users] = await Promise.all([
+          requestList("/subjects/"),
+          requestList("/students/"),
+          requestList("/groups/"),
+          requestList("/users/"),
+        ]);
+        const teachers = users.filter(
+          (user) => user.role === "TEACHER" || user.role === "ADMIN"
+        );
+
+        selSubject.innerHTML =
+          '<option value="">— subject —</option>' +
+          subjects
+            .map(
+              (s) =>
+                `<option value="${s.id}">${escapeHtml(s.name)}</option>`
+            )
+            .join("");
+        selStudent.innerHTML =
+          '<option value="">— none —</option>' +
+          students
+            .map(
+              (s) =>
+                `<option value="${s.id}">${escapeHtml(s.first_name)} ${escapeHtml(s.last_name)}</option>`
+            )
+            .join("");
+        selGroup.innerHTML =
+          '<option value="">— none —</option>' +
+          groups.map((g) => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join("");
+        populateSelect(selTeacher, teachers, "— teacher —", teacherLabel);
+      } catch (e) {
+        showBanner(banner, formatApiError(e));
+      }
     }
 
     function selectedWeekdays() {
@@ -54,7 +73,7 @@ if (!requireRole(["ADMIN"])) {
     function templatePayload() {
       const kind = document.querySelector('input[name="tpl_kind"]:checked')?.value;
       const body = {
-        teacher_id: parseInt(document.getElementById("teacher_id").value, 10),
+        teacher_id: parseInt(selTeacher.value, 10),
         subject_id: parseInt(selSubject.value, 10),
         days_of_week: selectedWeekdays(),
         start_time: document.getElementById("start_time").value,
@@ -85,7 +104,7 @@ if (!requireRole(["ADMIN"])) {
           .map(
             (t) => `<tr>
           <td>${t.id}</td>
-          <td>${escape(t.name)}</td>
+          <td>${escapeHtml(t.name)}</td>
           <td>${t.start_date} → ${t.end_date}</td>
           <td>${t.is_active ? "yes" : "no"}</td>
           <td>

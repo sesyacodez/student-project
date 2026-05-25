@@ -17,9 +17,17 @@
           <div class="app-card__header"><h2>Filters</h2></div>
           <div class="app-card__body app-form app-form--wide">
             <div class="app-form__row app-form__row--inline">
-              <label class="app-form__label">branch_id <input class="app-form__input" id="filter-branch" type="text" /></label>
-              <label class="app-form__label">teacher_id <input class="app-form__input" id="filter-teacher" type="text" /></label>
-              <label class="app-form__label">status
+              <label class="app-form__label">Branch
+                <select class="app-form__select" id="filter-branch">
+                  <option value="">Any branch</option>
+                </select>
+              </label>
+              <label class="app-form__label">Teacher
+                <select class="app-form__select" id="filter-teacher">
+                  <option value="">Any teacher</option>
+                </select>
+              </label>
+              <label class="app-form__label">Status
                 <select class="app-form__select" id="filter-status">
                   <option value="">any</option>
                   <option value="scheduled">scheduled</option>
@@ -45,8 +53,8 @@
                 <label><input type="radio" name="lesson_kind" value="group" /> Group</label>
               </div>
               <div class="app-form__row">
-                <label class="app-form__label" for="teacher_id">teacher_id (User pk)</label>
-                <input class="app-form__input" id="teacher_id" type="number" required />
+                <label class="app-form__label" for="teacher_id">Teacher</label>
+                <select class="app-form__select" id="teacher_id" required></select>
               </div>
               <div class="app-form__row">
                 <label class="app-form__label" for="subject_id">subject</label>

@@ -153,24 +153,28 @@ if (!requireRole(["ADMIN"])) {
     }
 
     async function loadOptions() {
-      const [students, plans, branches, subjects] = await Promise.all([
-        requestList("/students/"),
-        requestList("/subscription-plans/"),
-        requestList("/branches/"),
-        requestList("/subjects/"),
-      ]);
-      studentsCache = students;
-      plansCache = plans;
-      subjectsCache = subjects;
+      try {
+        const [students, plans, branches, subjects] = await Promise.all([
+          requestList("/students/"),
+          requestList("/subscription-plans/"),
+          requestList("/branches/"),
+          requestList("/subjects/"),
+        ]);
+        studentsCache = students;
+        plansCache = plans;
+        subjectsCache = subjects;
 
-      populateSelect(filterBranch, branches, "All branches", (branch) => `${branch.name} (${branch.city})`);
-      populateSelect(branchSelect, branches, "Choose branch", (branch) => `${branch.name} (${branch.city})`);
-      populateSelect(filterStudent, students, "All students", (student) => `${student.first_name} ${student.last_name} (#${student.id})`);
-      populateSelect(filterPlan, plans, "All plans", (plan) => `${plan.name} (#${plan.id})`);
-      populateSelect(filterSubject, subjects, "All subjects", (subject) => `${subject.name} (#${subject.id})`);
-      renderStudentOptions();
-      renderPlanOptions();
-      renderSubjectOptions();
+        populateSelect(filterBranch, branches, "All branches", (branch) => `${branch.name} (${branch.city})`);
+        populateSelect(branchSelect, branches, "Choose branch", (branch) => `${branch.name} (${branch.city})`);
+        populateSelect(filterStudent, students, "All students", (student) => `${student.first_name} ${student.last_name} (#${student.id})`);
+        populateSelect(filterPlan, plans, "All plans", (plan) => `${plan.name} (#${plan.id})`);
+        populateSelect(filterSubject, subjects, "All subjects", (subject) => `${subject.name} (#${subject.id})`);
+        renderStudentOptions();
+        renderPlanOptions();
+        renderSubjectOptions();
+      } catch (error) {
+        showBanner(banner, formatApiError(error));
+      }
     }
 
     async function loadSubscriptions() {
@@ -210,6 +214,11 @@ if (!requireRole(["ADMIN"])) {
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       clearBanner(banner);
+
+      if (!studentSelect.value || !planSelect.value || !subjectSelect.value) {
+        showBanner(banner, "Choose a student, plan, and subject.");
+        return;
+      }
 
       const payload = {
         student_id: studentSelect.value,

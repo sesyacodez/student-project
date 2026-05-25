@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Users — EduManage</title>
+    <link rel="stylesheet" href="styles/global.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <header data-nav></header>
+      <main>
+        <h1>Users</h1>
+        <p class="muted">Register staff accounts and manage access per branch.</p>
+        <div id="banner"></div>
+
+        <div class="app-card">
+          <div class="app-card__header"><h2 id="user-form-title">Create user</h2></div>
+          <div class="app-card__body">
+            <form id="user-form" class="app-form app-form--wide">
+              <div class="app-form__row app-form__row--inline">
+                <label class="app-form__label">
+                  First name
+                  <input class="app-form__input" id="user-first-name" required />
+                </label>
+                <label class="app-form__label">
+                  Last name
+                  <input class="app-form__input" id="user-last-name" required />
+                </label>
+                <label class="app-form__label">
+                  Phone
+                  <input class="app-form__input" id="user-phone" type="text" required />
+                </label>
+              </div>
+              <div class="app-form__row app-form__row--inline">
+                <label class="app-form__label">
+                  Role
+                  <select class="app-form__select" id="user-role" required>
+                    <option value="TEACHER">Teacher</option>
+                    <option value="ADMIN">Admin</option>
+                  </select>
+                </label>
+                <label class="app-form__label">
+                  Branch
+                  <select class="app-form__select" id="user-branch"></select>
+                </label>
+                <label class="app-form__label">
+                  Status
+                  <select class="app-form__select" id="user-status">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </label>
+              </div>
+              <div class="app-form__row app-form__row--inline">
+                <label class="app-form__label">
+                  Password
+                  <input class="app-form__input" id="user-password" type="password" required />
+                </label>
+                <label class="app-form__label">
+                  Confirm password
+                  <input class="app-form__input" id="user-password-confirm" type="password" required />
+                </label>
+              </div>
+              <div class="app-form__row app-form__row--inline">
+                <button type="submit" class="app-btn app-btn--primary" id="user-save">Create user</button>
+                <button type="button" class="app-btn app-btn--ghost" id="user-reset">Reset</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="app-card__header"><h2>Users list</h2></div>
+          <div class="app-card__body app-table-wrap">
+            <div class="app-form__row app-form__row--inline" style="margin-bottom: 1rem;">
+              <button type="button" class="app-btn app-btn--primary" id="btn-reload-users">Reload</button>
+            </div>
+            <table class="app-table" id="users-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Role</th>
+                  <th>Branch</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="js/pages/register.js"></script>
+  </body>
+</html>

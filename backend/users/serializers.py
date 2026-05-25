@@ -13,10 +13,12 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         if not self.user.is_active:
             raise AuthenticationFailed("This account is deactivated. Please contact the administrator.")
 
+        data['id'] = self.user.id
         data['role'] = self.user.role
         data['first_name'] = self.user.first_name
+        data['phone'] = self.user.phone
         data['branch_id'] = self.user.branch.id if self.user.branch else None
-        
+
         return data
     
 class UserSerializer(serializers.ModelSerializer):
@@ -26,6 +28,13 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True} 
         }
+
+    def validate(self, attrs):
+        instance = getattr(self, 'instance', None)
+        if instance and instance.role == 'ADMIN':
+            if attrs.get('is_active') is False:
+                raise serializers.ValidationError('Admin accounts cannot be deactivated.')
+        return attrs
 
     def create(self, validated_data):
         user = User(**validated_data)

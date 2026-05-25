@@ -50,56 +50,34 @@ export async function login(phone, password) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ phone, password }),
   });
-  
+
   const data = await res.json().catch(() => ({}));
-  
+
   if (res.status === 404) {
     throw new Error(
-      "Шлях API не знайдено. Перевірте, чи запущений сервер Django."
+      "API path not found. Check that the Django server is running."
     );
   }
-  
+
   if (!res.ok) {
     const msg =
       data.message ||
       (typeof data.detail === "string" ? data.detail : null) ||
-      "Не вдалося увійти. Перевірте телефон та пароль.";
+      "Login failed. Check your phone number and password.";
     throw new Error(msg);
   }
-  
+
   if (data.access) {
     setTokens({ access: data.access, refresh: data.refresh });
-    
+
     setUser({
+      id: data.id,
+      phone: data.phone,
       first_name: data.first_name,
       role: data.role,
-      branch_id: data.branch_id
+      branch_id: data.branch_id,
     });
   }
-}
-
-/** For local demo before JWT exists: navigate as ADMIN (API still AllowAny). */
-export function devLoginAsAdmin() {
-  setTokens({ access: "dev-local", refresh: "" });
-  setUser({
-    phone: "+dev-admin",
-    first_name: "Dev",
-    last_name: "Admin",
-    role: "ADMIN",
-    branches: [],
-  });
-}
-
-/** For local demo: TEACHER (no id — own-lesson checks skipped until real JWT /me). */
-export function devLoginAsTeacher() {
-  setTokens({ access: "dev-local", refresh: "" });
-  setUser({
-    phone: "+dev-teacher",
-    first_name: "Dev",
-    last_name: "Teacher",
-    role: "TEACHER",
-    branches: [],
-  });
 }
 
 export function logout() {

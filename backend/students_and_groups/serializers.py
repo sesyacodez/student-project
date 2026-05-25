@@ -113,7 +113,9 @@ class GroupSerializer(serializers.ModelSerializer):
         return [student.id for student in obj.students.all()]
 
     def get_student_count(self, obj):
-        return len(obj.students.all())
+        if hasattr(obj, "_prefetched_objects_cache") and "students" in obj._prefetched_objects_cache:
+            return len(obj._prefetched_objects_cache["students"])
+        return obj.students.count()
 
     def get_memberships(self, obj):
         memberships = obj.membership_records.all()
