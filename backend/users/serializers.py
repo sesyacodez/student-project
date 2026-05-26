@@ -35,7 +35,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data["role"] = user_payload.get("role")
         data["branches"] = user_payload.get("branches", [])
         data["branch_id"] = user_payload.get("branch_id")
-        
+
         return data
     
 class UserSerializer(serializers.ModelSerializer):
@@ -45,6 +45,13 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True} 
         }
+
+    def validate(self, attrs):
+        instance = getattr(self, 'instance', None)
+        if instance and instance.role == 'ADMIN':
+            if attrs.get('is_active') is False:
+                raise serializers.ValidationError('Admin accounts cannot be deactivated.')
+        return attrs
 
     def create(self, validated_data):
         user = User(**validated_data)

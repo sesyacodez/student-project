@@ -412,6 +412,8 @@ def teacher_schedule_report(request):
     date_to = request.query_params.get("date_to")
 
     if is_teacher_user(request.user):
+        if teacher_id and str(teacher_id) != str(request.user.pk):
+            raise PermissionDenied("You can only view your own schedule.")
         teacher_id = str(request.user.pk)
     if not teacher_id:
         raise ValidationError(
@@ -450,7 +452,11 @@ def student_attendance_report(request):
 
     if request.user.is_authenticated and is_teacher_user(request.user):
         allowed = _student_ids_for_teacher(request.user)
-        if int(student_id) not in allowed:
+        try:
+            requested_student_id = int(student_id)
+        except (TypeError, ValueError):
+            raise ValidationError({"student_id": "Expected an integer."})
+        if requested_student_id not in allowed:
             raise PermissionDenied(
                 "You can only view attendance for students in your lessons."
             )
@@ -458,6 +464,8 @@ def student_attendance_report(request):
     qs = Attendance.objects.filter(student_id=student_id).select_related(
         "lesson", "lesson__subject"
     )
+    if request.user.is_authenticated and is_teacher_user(request.user):
+        qs = qs.filter(lesson__teacher=request.user)
     if subject_id:
         qs = qs.filter(lesson__subject_id=subject_id)
     if date_from:

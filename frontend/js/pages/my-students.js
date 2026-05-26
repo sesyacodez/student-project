@@ -1,5 +1,5 @@
 import { requireRole } from "../auth.js";
-import { requestAllPages, requestList } from "../http.js";
+import { requestAllPages } from "../http.js";
 import { renderNav } from "../nav.js";
 import { clearBanner, escapeHtml, formatApiError, showBanner } from "../ui.js";
 
@@ -57,7 +57,7 @@ if (!requireRole(["TEACHER"])) {
           if (lesson.group) {
             const gid = lesson.group.id;
             if (!groupCache.has(gid)) {
-              const members = await requestList(`/groups/${gid}/students/`);
+              const members = await requestAllPages(`/groups/${gid}/students/`);
               groupCache.set(gid, members);
             }
             const members = groupCache.get(gid) || [];

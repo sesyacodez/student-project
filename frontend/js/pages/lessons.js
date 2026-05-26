@@ -1,7 +1,7 @@
 import { requireRole } from "../auth.js";
 import { request, requestList, ApiError } from "../http.js";
 import { renderNav } from "../nav.js";
-import { clearBanner, formatApiError, showBanner } from "../ui.js";
+import { clearBanner, escapeHtml, formatApiError, showBanner } from "../ui.js";
 
 renderNav();
 if (!requireRole(["ADMIN"])) {
@@ -19,11 +19,14 @@ const form = document.getElementById("lesson-form");
 const selSubject = document.getElementById("subject_id");
 const selStudent = document.getElementById("student_id");
 const selGroup = document.getElementById("group_id");
+const selTeacher = document.getElementById("teacher_id");
+const filterBranch = document.getElementById("filter-branch");
+const filterTeacher = document.getElementById("filter-teacher");
 
 function filterQuery() {
   const p = new URLSearchParams();
-  const branchId = document.getElementById("filter-branch").value.trim();
-  const teacherId = document.getElementById("filter-teacher").value.trim();
+  const branchId = filterBranch.value;
+  const teacherId = filterTeacher.value;
   const status = document.getElementById("filter-status").value.trim();
   const from = document.getElementById("filter-from").value;
   const to = document.getElementById("filter-to").value;
@@ -34,6 +37,19 @@ function filterQuery() {
   if (to) p.set("date_to", to);
   const s = p.toString();
   return s ? `?${s}` : "";
+}
+
+function teacherLabel(user) {
+  const name = `${user.first_name || ""} ${user.last_name || ""}`.trim();
+  return `${name || user.phone || "User"} (${user.role})`;
+}
+
+function populateSelect(select, items, placeholder, labelFn) {
+  select.innerHTML =
+    `<option value="">${escapeHtml(placeholder)}</option>` +
+    items
+      .map((item) => `<option value="${item.id}">${escapeHtml(labelFn(item))}</option>`)
+      .join("");
 }
 
 function participantLabel(lesson) {
@@ -54,10 +70,10 @@ function renderRow(lesson) {
   return `<tr>
     <td>${lesson.date}</td>
     <td>${lesson.start_time}–${lesson.end_time}</td>
-    <td>${escape(subj)}</td>
-    <td>${escape(tchr)}</td>
-    <td>${escape(participantLabel(lesson))}</td>
-    <td>${escape(lesson.status)}</td>
+    <td>${escapeHtml(subj)}</td>
+    <td>${escapeHtml(tchr)}</td>
+    <td>${escapeHtml(participantLabel(lesson))}</td>
+    <td>${escapeHtml(lesson.status)}</td>
     <td>
       <a class="app-btn app-btn--ghost" href="lesson-detail.html?id=${lesson.id}">View</a>
       <a class="app-btn app-btn--ghost" href="attendance.html?lesson_id=${lesson.id}">Attendance</a>
@@ -67,41 +83,46 @@ function renderRow(lesson) {
   </tr>`;
 }
 
-function escape(s) {
-  return String(s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/"/g, "&quot;");
-}
-
 async function loadDropdowns() {
   try {
-    const subjects = await requestList("/subjects/");
+    const [subjects, students, groups, branches, users] = await Promise.all([
+      requestList("/subjects/"),
+      requestList("/students/"),
+      requestList("/groups/"),
+      requestList("/branches/"),
+      requestList("/users/"),
+    ]);
+    const teachers = users.filter(
+      (user) => user.role === "TEACHER" || user.role === "ADMIN"
+    );
+
     selSubject.innerHTML =
       '<option value="">— subject —</option>' +
       subjects
         .map(
           (s) =>
-            `<option value="${s.id}">${escape(s.name)} (branch ${s.branch?.id ?? "?"})</option>`
+            `<option value="${s.id}">${escapeHtml(s.name)} (branch ${s.branch?.id ?? "?"})</option>`
         )
         .join("");
 
-    const students = await requestList("/students/");
     selStudent.innerHTML =
       '<option value="">— none —</option>' +
       students
         .map(
           (s) =>
-            `<option value="${s.id}">${escape(s.first_name)} ${escape(s.last_name)}</option>`
+            `<option value="${s.id}">${escapeHtml(s.first_name)} ${escapeHtml(s.last_name)}</option>`
         )
         .join("");
 
-    const groups = await requestList("/groups/");
     selGroup.innerHTML =
       '<option value="">— none —</option>' +
       groups
-        .map((g) => `<option value="${g.id}">${escape(g.name)}</option>`)
+        .map((g) => `<option value="${g.id}">${escapeHtml(g.name)}</option>`)
         .join("");
+
+    populateSelect(selTeacher, teachers, "— teacher —", teacherLabel);
+    populateSelect(filterBranch, branches, "Any branch", (branch) => `${branch.name} (${branch.city})`);
+    populateSelect(filterTeacher, teachers, "Any teacher", teacherLabel);
   } catch (e) {
     showBanner(banner, formatApiError(e));
   }
@@ -153,8 +174,8 @@ async function completeLesson(id) {
 }
 
 function lessonPayload() {
-  const teacherId = Number(document.getElementById("teacher_id").value, 10);
-  const subjectId = Number(selSubject.value, 10);
+  const teacherId = parseInt(selTeacher.value, 10);
+  const subjectId = parseInt(selSubject.value, 10);
   const date = document.getElementById("date").value;
   const startTime = document.getElementById("start_time").value;
   const endTime = document.getElementById("end_time").value;
@@ -168,10 +189,10 @@ function lessonPayload() {
     end_time: endTime,
   };
   if (kind === "group") {
-    body.group_id = Number(selGroup.value, 10);
+    body.group_id = parseInt(selGroup.value, 10);
     body.student_id = null;
   } else {
-    body.student_id = Number(selStudent.value, 10);
+    body.student_id = parseInt(selStudent.value, 10);
     body.group_id = null;
   }
   return body;

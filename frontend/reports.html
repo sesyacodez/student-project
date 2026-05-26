@@ -22,8 +22,10 @@
         <div id="panel-teacher" class="tab-panel app-card">
           <div class="app-card__body app-form">
             <div class="app-form__row" id="r-teacher-row">
-              <label class="app-form__label" for="r-teacher-id">teacher_id (ADMIN)</label>
-              <input class="app-form__input" id="r-teacher-id" type="number" />
+              <label class="app-form__label" for="r-teacher-id">Teacher (admin)</label>
+              <select class="app-form__select" id="r-teacher-id">
+                <option value="">— teacher —</option>
+              </select>
             </div>
             <div class="app-form__row app-form__row--inline">
               <label class="app-form__label">from <input class="app-form__input" id="r-ts-from" type="date" /></label>
@@ -37,12 +39,16 @@
         <div id="panel-student" class="tab-panel app-card" style="display: none">
           <div class="app-card__body app-form">
             <div class="app-form__row">
-              <label class="app-form__label" for="r-student-id">student_id</label>
-              <input class="app-form__input" id="r-student-id" type="number" required />
+              <label class="app-form__label" for="r-student-id">Student</label>
+              <select class="app-form__select" id="r-student-id" required>
+                <option value="">— student —</option>
+              </select>
             </div>
             <div class="app-form__row">
-              <label class="app-form__label" for="r-subject-id">subject_id (optional)</label>
-              <input class="app-form__input" id="r-subject-id" type="number" />
+              <label class="app-form__label" for="r-subject-id">Subject (optional)</label>
+              <select class="app-form__select" id="r-subject-id">
+                <option value="">All subjects</option>
+              </select>
             </div>
             <div class="app-form__row app-form__row--inline">
               <label class="app-form__label">from <input class="app-form__input" id="r-sa-from" type="date" /></label>
@@ -56,8 +62,10 @@
         <div id="panel-branch" class="tab-panel app-card" style="display: none">
           <div class="app-card__body app-form">
             <div class="app-form__row">
-              <label class="app-form__label" for="r-branch-id">branch_id</label>
-              <input class="app-form__input" id="r-branch-id" type="number" required />
+              <label class="app-form__label" for="r-branch-id">Branch</label>
+              <select class="app-form__select" id="r-branch-id" required>
+                <option value="">— branch —</option>
+              </select>
             </div>
             <div class="app-form__row app-form__row--inline">
               <label class="app-form__label">from <input class="app-form__input" id="r-br-from" type="date" /></label>

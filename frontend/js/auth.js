@@ -50,23 +50,23 @@ export async function login(phone, password) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ phone, password }),
   });
-  
+
   const data = await res.json().catch(() => ({}));
-  
+
   if (res.status === 404) {
     throw new Error(
-      "Шлях API не знайдено. Перевірте, чи запущений сервер Django."
+      "API path not found. Check that the Django server is running."
     );
   }
-  
+
   if (!res.ok) {
     const msg =
       data.message ||
       (typeof data.detail === "string" ? data.detail : null) ||
-      "Не вдалося увійти. Перевірте телефон та пароль.";
+      "Login failed. Check your phone number and password.";
     throw new Error(msg);
   }
-  
+
   if (data.access) {
     setTokens({ access: data.access, refresh: data.refresh });
 
@@ -79,6 +79,12 @@ export async function login(phone, password) {
       branches: data.branches ?? (data.branch_id ? [data.branch_id] : []),
       branch_id: data.branch_id,
     };
+    const branchId = payload.branch_id ?? null;
+    const branches = Array.isArray(payload.branches)
+      ? payload.branches
+      : branchId
+        ? [branchId]
+        : [];
 
     setUser({
       id: payload.id,
@@ -86,8 +92,8 @@ export async function login(phone, password) {
       first_name: payload.first_name,
       last_name: payload.last_name,
       role: payload.role,
-      branches: Array.isArray(payload.branches) ? payload.branches : [],
-      branch_id: payload.branch_id ?? null,
+      branches,
+      branch_id: branchId,
     });
   }
 }

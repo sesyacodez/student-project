@@ -117,15 +117,19 @@ if (!requireRole(["ADMIN"])) {
     }
 
     async function loadOptions() {
-      const [branches, students, groups] = await Promise.all([
-        requestList("/branches/"),
-        requestList("/students/"),
-        requestList("/groups/"),
-      ]);
-      populateSelect(branchSelect, branches, "Choose branch", (branch) => `${branch.name} (${branch.city})`);
-      populateSelect(filterBranch, branches, "All branches", (branch) => `${branch.name} (${branch.city})`);
-      populateSelect(memberGroupSelect, groups, "Choose group", (group) => `${group.name} (#${group.id})`);
-      populateSelect(memberStudentSelect, students, "Choose student", (student) => `${student.first_name} ${student.last_name} (#${student.id})`);
+      try {
+        const [branches, students, groups] = await Promise.all([
+          requestList("/branches/"),
+          requestList("/students/"),
+          requestList("/groups/"),
+        ]);
+        populateSelect(branchSelect, branches, "Choose branch", (branch) => `${branch.name} (${branch.city})`);
+        populateSelect(filterBranch, branches, "All branches", (branch) => `${branch.name} (${branch.city})`);
+        populateSelect(memberGroupSelect, groups, "Choose group", (group) => `${group.name} (#${group.id})`);
+        populateSelect(memberStudentSelect, students, "Choose student", (student) => `${student.first_name} ${student.last_name} (#${student.id})`);
+      } catch (error) {
+        showBanner(banner, formatApiError(error));
+      }
     }
 
     async function loadGroups() {

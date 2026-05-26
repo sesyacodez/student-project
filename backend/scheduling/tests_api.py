@@ -46,6 +46,7 @@ class LessonAPITests(TestCase):
         )
 
     def test_create_lesson_201(self):
+        self.client.force_authenticate(user=self.admin)
         res = self.client.post(
             "/api/v1/lessons/",
             {
@@ -63,6 +64,7 @@ class LessonAPITests(TestCase):
         self.assertEqual(res.data["status"], "scheduled")
 
     def test_create_lesson_409_conflict(self):
+        self.client.force_authenticate(user=self.admin)
         Lesson.objects.create(
             name="Existing",
             date=date(2026, 11, 2),
@@ -89,6 +91,7 @@ class LessonAPITests(TestCase):
         self.assertEqual(res.data["code"], "schedule_conflict")
 
     def test_conflicts_check_returns_ids_without_create(self):
+        self.client.force_authenticate(user=self.admin)
         ex = Lesson.objects.create(
             name="Existing",
             date=date(2026, 11, 3),
@@ -117,6 +120,7 @@ class LessonAPITests(TestCase):
         self.assertEqual(Lesson.objects.count(), before)
 
     def test_attendance_batch_upsert(self):
+        self.client.force_authenticate(user=self.teacher)
         lesson = Lesson.objects.create(
             name="L",
             date=date(2026, 11, 4),
@@ -185,6 +189,121 @@ class LessonAPITests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         names = {row["name"] for row in res.data["results"]}
         self.assertEqual(names, {"Mine"})
+
+    def test_teacher_schedule_report_rejects_other_teacher_id(self):
+        other = User.objects.create_user(
+            phone="+2000000004",
+            password="x",
+            first_name="Other",
+            last_name="Teacher",
+            role="TEACHER",
+        )
+        Lesson.objects.create(
+            name="Mine",
+            date=date(2026, 11, 6),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status=LessonStatus.SCHEDULED,
+            teacher=self.teacher,
+            subject=self.subject,
+            student=self.student,
+        )
+        Lesson.objects.create(
+            name="Other Teacher",
+            date=date(2026, 11, 6),
+            start_time=time(11, 0),
+            end_time=time(12, 0),
+            status=LessonStatus.SCHEDULED,
+            teacher=other,
+            subject=self.subject,
+            student=self.student,
+        )
+
+        self.client.force_authenticate(user=self.teacher)
+        forbidden = self.client.get(
+            f"/api/v1/reports/teacher-schedule/?teacher_id={other.pk}"
+        )
+        self.assertEqual(forbidden.status_code, status.HTTP_403_FORBIDDEN)
+
+        allowed = self.client.get("/api/v1/reports/teacher-schedule/")
+        self.assertEqual(allowed.status_code, status.HTTP_200_OK)
+        self.assertEqual([row["name"] for row in allowed.data], ["Mine"])
+
+    def test_student_attendance_report_teacher_scope(self):
+        other_teacher = User.objects.create_user(
+            phone="+2000000005",
+            password="x",
+            first_name="Other",
+            last_name="Teacher",
+            role="TEACHER",
+        )
+        other_student = Student.objects.create(
+            first_name="Other",
+            last_name="Student",
+            branch=self.branch,
+            status=StudentStatus.ACTIVE,
+        )
+        own_lesson = Lesson.objects.create(
+            name="Own Attendance",
+            date=date(2026, 11, 7),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status=LessonStatus.COMPLETED,
+            teacher=self.teacher,
+            subject=self.subject,
+            student=self.student,
+        )
+        other_same_student_lesson = Lesson.objects.create(
+            name="Other Attendance",
+            date=date(2026, 11, 7),
+            start_time=time(11, 0),
+            end_time=time(12, 0),
+            status=LessonStatus.COMPLETED,
+            teacher=other_teacher,
+            subject=self.subject,
+            student=self.student,
+        )
+        other_student_lesson = Lesson.objects.create(
+            name="Unrelated Attendance",
+            date=date(2026, 11, 8),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status=LessonStatus.COMPLETED,
+            teacher=other_teacher,
+            subject=self.subject,
+            student=other_student,
+        )
+        Attendance.objects.create(
+            status=AttendanceStatus.PRESENT,
+            lesson=own_lesson,
+            student=self.student,
+        )
+        Attendance.objects.create(
+            status=AttendanceStatus.ABSENT,
+            lesson=other_same_student_lesson,
+            student=self.student,
+        )
+        Attendance.objects.create(
+            status=AttendanceStatus.PRESENT,
+            lesson=other_student_lesson,
+            student=other_student,
+        )
+
+        self.client.force_authenticate(user=self.teacher)
+        allowed = self.client.get(
+            f"/api/v1/reports/student-attendance/?student_id={self.student.pk}"
+        )
+        self.assertEqual(allowed.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            [row["lesson_id"] for row in allowed.data["records"]],
+            [own_lesson.pk],
+        )
+        self.assertEqual(allowed.data["summary"], {"attended": 1, "missed": 0})
+
+        forbidden = self.client.get(
+            f"/api/v1/reports/student-attendance/?student_id={other_student.pk}"
+        )
+        self.assertEqual(forbidden.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_template_generate_skips_conflicts(self):
         self.client.force_authenticate(user=self.admin)

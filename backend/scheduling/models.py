@@ -105,13 +105,14 @@ class LessonTemplate(models.Model):
 
 class Lesson(models.Model):
     name = models.CharField(max_length=100)
-    date = models.DateField()
+    date = models.DateField(db_index=True)
     start_time = models.TimeField()
     end_time = models.TimeField()
     status = models.CharField(
         max_length=9,
         choices=LessonStatus.choices,
         default=LessonStatus.SCHEDULED,
+        db_index=True,
     )
     lesson_template = models.ForeignKey(
         "scheduling.LessonTemplate",
@@ -136,6 +137,7 @@ class Lesson(models.Model):
         related_name="lessons",
         null=True,
         blank=True,
+        db_index=True,
     )
     group = models.ForeignKey(
         "students_and_groups.Group",
@@ -143,7 +145,16 @@ class Lesson(models.Model):
         related_name="lessons",
         null=True,
         blank=True,
+        db_index=True,
     )
+
+    class Meta:
+        indexes = [
+            models.Index(
+                fields=["date", "start_time", "end_time"],
+                name="lesson_date_time_idx",
+            ),
+        ]
 
     def clean(self):
         super().clean()

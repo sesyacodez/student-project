@@ -1,4 +1,4 @@
-import { ApiError } from "./http.js";
+import { ApiError, flattenValidationErrors } from "./http.js";
 
 export function escapeHtml(s) {
   return String(s)
@@ -43,7 +43,22 @@ export function formatApiError(err) {
       });
       return [b.message, ...lines].join("\n");
     }
-    if (b.message) return b.message;
+    if (typeof b.message === "string" && b.message) {
+      return b.message;
+    }
+    if (typeof b.detail === "string" && b.detail) {
+      return b.detail;
+    }
+    if (Array.isArray(b.detail)) {
+      return b.detail.join("; ");
+    }
+    if (Array.isArray(b.non_field_errors)) {
+      return b.non_field_errors.join("; ");
+    }
+    const fieldErrors = flattenValidationErrors(b);
+    if (fieldErrors) {
+      return fieldErrors;
+    }
   }
   if (err instanceof Error) return err.message;
   return String(err);
