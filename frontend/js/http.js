@@ -34,7 +34,7 @@ async function parseBody(res) {
 async function tryRefresh() {
   const refresh = getRefreshToken();
   if (!refresh) return false;
-  const res = await fetch(`${API_BASE}/users/token/refresh/`, {
+  const res = await fetch(`${API_BASE}/auth/refresh/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refresh }),
@@ -122,4 +122,38 @@ export async function requestList(path) {
   if (data && Array.isArray(data.results)) return data.results;
   if (Array.isArray(data)) return data;
   return [];
+}
+
+/** DRF paginated list → array (all pages) */
+export async function requestAllPages(path, maxPages = 50) {
+  const results = [];
+  let nextPath = path;
+  let pages = 0;
+
+  while (nextPath && pages < maxPages) {
+    pages += 1;
+    const data = await request(nextPath);
+    if (data && Array.isArray(data.results)) {
+      results.push(...data.results);
+      if (!data.next) break;
+      if (data.next.startsWith(API_BASE)) {
+        nextPath = data.next.slice(API_BASE.length);
+      } else if (data.next.startsWith("http")) {
+        try {
+          const url = new URL(data.next);
+          nextPath = `${url.pathname}${url.search}`;
+        } catch {
+          nextPath = null;
+        }
+      } else {
+        nextPath = data.next;
+      }
+    } else if (Array.isArray(data)) {
+      return data;
+    } else {
+      break;
+    }
+  }
+
+  return results;
 }

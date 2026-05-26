@@ -8,7 +8,7 @@ from branches.models import Branch, Subject, SubjectStatus
 from students_and_groups.models import Group, Student, StudentStatus
 from users.models import User
 
-from .models import Lesson, LessonStatus
+from .models import Attendance, AttendanceStatus, Lesson, LessonStatus
 
 
 class LessonAPITests(TestCase):
@@ -229,10 +229,68 @@ class LessonAPITests(TestCase):
         res = self.client.get(
             f"/api/v1/reports/branch-stats/?branch_id={self.branch.pk}"
         )
-        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
         self.client.force_authenticate(user=self.admin)
         res2 = self.client.get(
             f"/api/v1/reports/branch-stats/?branch_id={self.branch.pk}"
         )
         self.assertEqual(res2.status_code, status.HTTP_200_OK)
         self.assertIn("active_students_count", res2.data)
+
+    def test_branch_stats_aggregates_counts(self):
+        archived_student = Student.objects.create(
+            first_name="Old",
+            last_name="Pupil",
+            branch=self.branch,
+            status=StudentStatus.ARCHIVED,
+        )
+        completed_one = Lesson.objects.create(
+            name="Completed One",
+            date=date(2026, 11, 10),
+            start_time=time(8, 0),
+            end_time=time(9, 0),
+            status=LessonStatus.COMPLETED,
+            teacher=self.teacher,
+            subject=self.subject,
+            student=self.student,
+        )
+        completed_two = Lesson.objects.create(
+            name="Completed Two",
+            date=date(2026, 11, 11),
+            start_time=time(8, 0),
+            end_time=time(9, 0),
+            status=LessonStatus.COMPLETED,
+            teacher=self.teacher,
+            subject=self.subject,
+            student=archived_student,
+        )
+        Lesson.objects.create(
+            name="Cancelled",
+            date=date(2026, 11, 12),
+            start_time=time(8, 0),
+            end_time=time(9, 0),
+            status=LessonStatus.CANCELLED,
+            teacher=self.teacher,
+            subject=self.subject,
+            student=self.student,
+        )
+        Attendance.objects.create(
+            status=AttendanceStatus.PRESENT,
+            lesson=completed_one,
+            student=self.student,
+        )
+        Attendance.objects.create(
+            status=AttendanceStatus.ABSENT,
+            lesson=completed_two,
+            student=archived_student,
+        )
+
+        self.client.force_authenticate(user=self.admin)
+        res = self.client.get(
+            f"/api/v1/reports/branch-stats/?branch_id={self.branch.pk}"
+        )
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data["active_students_count"], 1)
+        self.assertEqual(res.data["lessons_completed_count"], 2)
+        self.assertEqual(res.data["lessons_cancelled_count"], 1)
+        self.assertEqual(res.data["attendance_percent"], 50.0)

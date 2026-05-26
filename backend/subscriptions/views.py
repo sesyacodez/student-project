@@ -1,10 +1,13 @@
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from branches.models import Subject
+from branches.serializers import SubjectSerializer
+from users.permissions import IsAdminRole
 from .models import PricingTier, StudentSubscription, SubscriptionPlan, SubscriptionPlanStatus, SubscriptionPlanType
 from .serializers import (
 	PricingTierSerializer,
@@ -25,11 +28,21 @@ def _normalize_choice(value, allowed_values, field_name):
 
 
 class SubscriptionPlanViewSet(viewsets.ModelViewSet):
-	permission_classes = [AllowAny]
-	authentication_classes = []
+	permission_classes = [IsAuthenticated, IsAdminRole]
 
 	def get_queryset(self):
-		queryset = SubscriptionPlan.objects.select_related("branch").prefetch_related("subjects", "pricing_tiers").order_by("name")
+		queryset = SubscriptionPlan.objects.select_related("branch").prefetch_related(
+			Prefetch("subjects", queryset=Subject.objects.select_related("branch").order_by("name")),
+			Prefetch(
+				"pricing_tiers",
+				queryset=PricingTier.objects.only(
+					"id",
+					"subscription_plan_id",
+					"lessons_per_month",
+					"price_per_lesson",
+				).order_by("lessons_per_month"),
+			),
+		).order_by("name")
 		params = self.request.query_params
 
 		branch_id = params.get("branch_id")
@@ -88,8 +101,7 @@ class SubscriptionPlanViewSet(viewsets.ModelViewSet):
 	def subjects(self, request, pk=None):
 		plan = self.get_object()
 		if request.method == "GET":
-			subjects = plan.subjects.select_related("branch").order_by("name")
-			return Response(SubscriptionPlanReadSerializer(plan, context=self.get_serializer_context()).data["subjects"])
+			return Response(SubjectSerializer(plan.subjects.all(), many=True, context=self.get_serializer_context()).data)
 
 		serializer = SubscriptionPlanSubjectsSerializer(instance=plan, data=request.data, context={"plan": plan})
 		serializer.is_valid(raise_exception=True)
@@ -100,8 +112,7 @@ class SubscriptionPlanViewSet(viewsets.ModelViewSet):
 	def pricing_tiers(self, request, pk=None):
 		plan = self.get_object()
 		if request.method == "GET":
-			tiers = plan.pricing_tiers.all().order_by("lessons_per_month")
-			return Response(PricingTierSerializer(tiers, many=True, context=self.get_serializer_context()).data)
+			return Response(PricingTierSerializer(plan.pricing_tiers.all(), many=True, context=self.get_serializer_context()).data)
 
 		serializer = PricingTierSerializer(data=request.data, context={"subscription_plan": plan})
 		serializer.is_valid(raise_exception=True)
@@ -111,8 +122,7 @@ class SubscriptionPlanViewSet(viewsets.ModelViewSet):
 
 class PricingTierViewSet(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
 	serializer_class = PricingTierSerializer
-	permission_classes = [AllowAny]
-	authentication_classes = []
+	permission_classes = [IsAuthenticated, IsAdminRole]
 
 	def get_queryset(self):
 		return PricingTier.objects.select_related("subscription_plan__branch").order_by("subscription_plan_id", "lessons_per_month")
@@ -120,8 +130,7 @@ class PricingTierViewSet(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mix
 
 class StudentSubscriptionViewSet(viewsets.ModelViewSet):
 	serializer_class = StudentSubscriptionSerializer
-	permission_classes = [AllowAny]
-	authentication_classes = []
+	permission_classes = [IsAuthenticated, IsAdminRole]
 
 	def get_queryset(self):
 		queryset = (
@@ -130,7 +139,6 @@ class StudentSubscriptionViewSet(viewsets.ModelViewSet):
 				"subscription_plan__branch",
 				"subject__branch",
 			)
-			.prefetch_related("subscription_plan__subjects", "subscription_plan__pricing_tiers")
 			.order_by("-start_date")
 		)
 		params = self.request.query_params

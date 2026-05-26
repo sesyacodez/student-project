@@ -14,7 +14,7 @@ class SubscriptionPlanStatus(models.TextChoices):
 
 
 class SubscriptionPlan(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, db_index=True)
     branch = models.ForeignKey(
         "branches.Branch",
         on_delete=models.CASCADE,
@@ -24,6 +24,7 @@ class SubscriptionPlan(models.Model):
         max_length=20,
         choices=SubscriptionPlanType.choices,
         default=SubscriptionPlanType.INDIVIDUAL,
+        db_index=True,
     )
     subjects = models.ManyToManyField(
         "branches.Subject",
@@ -34,7 +35,13 @@ class SubscriptionPlan(models.Model):
         max_length=20,
         choices=SubscriptionPlanStatus.choices,
         default=SubscriptionPlanStatus.ACTIVE,
+        db_index=True,
     )
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["branch", "type", "status"], name="subplan_branch_type_status_idx"),
+        ]
 
     def __str__(self):
         return self.name

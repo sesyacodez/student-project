@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from students_and_groups.models import Student, StudentStatus
 
 from . import services
-from .models import Attendance, Lesson, LessonStatus, LessonTemplate
+from .models import Attendance, AttendanceStatus, Lesson, LessonStatus, LessonTemplate
 from .permissions import (
     IsAdminOrLessonTeacher,
     IsAdminOrTeacherUserRole,
@@ -514,15 +514,17 @@ def branch_stats_report(request):
         branch_id=branch_id, status=StudentStatus.ACTIVE
     ).count()
 
-    attendance_qs = Attendance.objects.filter(
-        lesson__subject__branch_id=branch_id
-    )
+    attendance_qs = Attendance.objects.filter(lesson__subject__branch_id=branch_id)
     if date_from:
         attendance_qs = attendance_qs.filter(lesson__date__gte=date_from)
     if date_to:
         attendance_qs = attendance_qs.filter(lesson__date__lte=date_to)
-    total = attendance_qs.count()
-    present = attendance_qs.filter(status="present").count()
+    attendance_agg = attendance_qs.aggregate(
+        total=Count("id"),
+        present=Count("id", filter=Q(status=AttendanceStatus.PRESENT)),
+    )
+    total = attendance_agg["total"] or 0
+    present = attendance_agg["present"] or 0
     pct = (present / total * 100.0) if total else 0.0
 
     payload = {

@@ -45,7 +45,7 @@ export function isLoggedIn() {
  * Real login to our Django backend.
  */
 export async function login(phone, password) {
-  const res = await fetch(`${API_BASE}/users/login/`, {
+  const res = await fetch(`${API_BASE}/auth/login/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ phone, password }),
@@ -69,11 +69,25 @@ export async function login(phone, password) {
   
   if (data.access) {
     setTokens({ access: data.access, refresh: data.refresh });
-    
-    setUser({
+
+    const payload = data.user && typeof data.user === "object" ? data.user : {
+      id: data.id,
+      phone: data.phone,
       first_name: data.first_name,
+      last_name: data.last_name,
       role: data.role,
-      branch_id: data.branch_id
+      branches: data.branches ?? (data.branch_id ? [data.branch_id] : []),
+      branch_id: data.branch_id,
+    };
+
+    setUser({
+      id: payload.id,
+      phone: payload.phone,
+      first_name: payload.first_name,
+      last_name: payload.last_name,
+      role: payload.role,
+      branches: Array.isArray(payload.branches) ? payload.branches : [],
+      branch_id: payload.branch_id ?? null,
     });
   }
 }
@@ -82,6 +96,7 @@ export async function login(phone, password) {
 export function devLoginAsAdmin() {
   setTokens({ access: "dev-local", refresh: "" });
   setUser({
+    id: 0,
     phone: "+dev-admin",
     first_name: "Dev",
     last_name: "Admin",
@@ -94,6 +109,7 @@ export function devLoginAsAdmin() {
 export function devLoginAsTeacher() {
   setTokens({ access: "dev-local", refresh: "" });
   setUser({
+    id: 0,
     phone: "+dev-teacher",
     first_name: "Dev",
     last_name: "Teacher",

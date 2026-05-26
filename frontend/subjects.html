@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Subjects — EduManage</title>
+    <link rel="stylesheet" href="styles/global.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <header data-nav></header>
+      <main>
+        <h1>Subjects</h1>
+        <p class="muted">Organize subjects per branch and archive anything no longer offered.</p>
+        <div id="banner"></div>
+
+        <div class="app-card">
+          <div class="app-card__header"><h2>Filters</h2></div>
+          <div class="app-card__body app-form app-form--wide">
+            <div class="app-form__row app-form__row--inline">
+              <label class="app-form__label">
+                Branch
+                <select class="app-form__select" id="filter-subject-branch"></select>
+              </label>
+              <label class="app-form__label">
+                Status
+                <select class="app-form__select" id="filter-subject-status">
+                  <option value="">Any</option>
+                  <option value="active">Active</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </label>
+            </div>
+            <div class="app-form__row app-form__row--inline">
+              <label class="app-form__label" for="filter-subject-search">Search</label>
+              <input class="app-form__input" id="filter-subject-search" type="search" placeholder="Subject name" />
+              <button type="button" class="app-btn app-btn--primary" id="btn-reload-subjects">Apply</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="app-card__header"><h2 id="subject-form-title">Create subject</h2></div>
+          <div class="app-card__body">
+            <form id="subject-form" class="app-form app-form--wide">
+              <input id="subject-id" type="hidden" />
+              <div class="app-form__row app-form__row--inline">
+                <label class="app-form__label">
+                  Name
+                  <input class="app-form__input" id="subject-name" required />
+                </label>
+                <label class="app-form__label">
+                  Branch
+                  <select class="app-form__select" id="subject-branch" required></select>
+                </label>
+                <label class="app-form__label">
+                  Status
+                  <select class="app-form__select" id="subject-status">
+                    <option value="active">Active</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </label>
+              </div>
+              <div class="app-form__row app-form__row--inline">
+                <button type="submit" class="app-btn app-btn--primary" id="subject-save">Create subject</button>
+                <button type="button" class="app-btn app-btn--ghost" id="subject-reset">Reset</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="app-card__header"><h2>Subjects list</h2></div>
+          <div class="app-card__body app-table-wrap">
+            <table class="app-table" id="subjects-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Branch</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="js/pages/subjects.js"></script>
+  </body>
+</html>
