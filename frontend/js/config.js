@@ -1,1 +1,1 @@
-export const API_BASE = "https://student-project-api-8zwn.onrender.com/api/v1/";
+export const API_BASE = "https://student-project-api-8zwn.onrender.com/api/v1";
