@@ -21,8 +21,8 @@ class GroupStatus(models.TextChoices):
 
 
 class Student(models.Model):
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
+    first_name = models.CharField(max_length=50, db_index=True)
+    last_name = models.CharField(max_length=50, db_index=True)
     date_of_birth = models.DateField(null=True, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
@@ -49,13 +49,16 @@ class Student(models.Model):
 
     class Meta:
         ordering = ["last_name", "first_name"]
+        indexes = [
+            models.Index(fields=["branch", "status"], name="student_branch_status_idx"),
+        ]
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
 
 class Group(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, db_index=True)
     branch = models.ForeignKey(
         "branches.Branch",
         on_delete=models.CASCADE,
@@ -72,6 +75,11 @@ class Group(models.Model):
         default=GroupStatus.ACTIVE,
         db_index=True,
     )
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["branch", "status"], name="group_branch_status_idx"),
+        ]
 
     def add_student(self, student, join_date=None):
         if student.branch_id != self.branch_id:

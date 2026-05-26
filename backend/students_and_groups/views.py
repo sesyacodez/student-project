@@ -3,12 +3,18 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import AllowAny
+from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from users.permissions import IsAdminRole
+from scheduling.models import Lesson
 from .models import Group, GroupMembership, GroupStatus, Student, StudentStatus
-from .serializers import GroupMembershipSerializer, GroupSerializer, StudentSerializer
+from .serializers import (
+	GroupMembershipSerializer,
+	GroupSerializer,
+	StudentSerializer,
+)
 
 
 def _normalize_choice(value, allowed_values, field_name):
@@ -22,11 +28,12 @@ def _normalize_choice(value, allowed_values, field_name):
 
 class StudentViewSet(viewsets.ModelViewSet):
 	serializer_class = StudentSerializer
-	permission_classes = [AllowAny]
-	authentication_classes = []
+	permission_classes = [IsAuthenticated, IsAdminRole]
 
 	def get_queryset(self):
-		queryset = Student.objects.select_related("branch").prefetch_related("groups").order_by("last_name", "first_name")
+		queryset = Student.objects.select_related("branch").prefetch_related(
+			Prefetch("groups", queryset=Group.objects.only("id").order_by("id")),
+		).order_by("last_name", "first_name")
 		params = self.request.query_params
 
 		branch_id = params.get("branch_id")
@@ -62,13 +69,17 @@ class StudentViewSet(viewsets.ModelViewSet):
 
 class GroupViewSet(viewsets.ModelViewSet):
 	serializer_class = GroupSerializer
-	permission_classes = [AllowAny]
-	authentication_classes = []
+	permission_classes = [IsAuthenticated, IsAdminRole]
+
+	def get_permissions(self):
+		if self.action == "students" and self.request.method == "GET":
+			return [IsAuthenticated()]
+		return super().get_permissions()
 
 	def get_queryset(self):
 		membership_queryset = GroupMembership.objects.select_related("student", "student__branch").order_by("-join_date")
 		queryset = Group.objects.select_related("branch").prefetch_related(
-			"students",
+			Prefetch("students", queryset=Student.objects.only("id").order_by("id")),
 			Prefetch("membership_records", queryset=membership_queryset),
 		).order_by("name")
 		params = self.request.query_params
@@ -104,6 +115,13 @@ class GroupViewSet(viewsets.ModelViewSet):
 	def students(self, request, pk=None):
 		group = self.get_object()
 		if request.method == "GET":
+			user = request.user
+			is_admin = bool(user.is_superuser or getattr(user, "role", None) == "ADMIN")
+			if not is_admin:
+				if getattr(user, "role", None) != "TEACHER":
+					raise PermissionDenied("You do not have access to this group.")
+				if not Lesson.objects.filter(teacher=user, group=group).exists():
+					raise PermissionDenied("You do not have access to this group.")
 			memberships = group.membership_records.filter(leave_date__isnull=True).select_related("student", "student__branch").order_by("join_date")
 			serializer = GroupMembershipSerializer(memberships, many=True)
 			return Response(serializer.data)

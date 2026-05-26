@@ -22,3 +22,5 @@ class GroupAdmin(admin.ModelAdmin):
 class GroupMembershipAdmin(admin.ModelAdmin):
     list_display = ("group", "student", "join_date", "leave_date")
     list_filter = ("group", "leave_date")
+
+

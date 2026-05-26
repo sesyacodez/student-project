@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from students_and_groups.models import Student, StudentStatus
 
 from . import services
-from .models import Attendance, Lesson, LessonStatus, LessonTemplate
+from .models import Attendance, AttendanceStatus, Lesson, LessonStatus, LessonTemplate
 from .permissions import (
     IsAdminOrLessonTeacher,
     IsAdminOrTeacherUserRole,
@@ -412,6 +412,8 @@ def teacher_schedule_report(request):
     date_to = request.query_params.get("date_to")
 
     if is_teacher_user(request.user):
+        if teacher_id and str(teacher_id) != str(request.user.pk):
+            raise PermissionDenied("You can only view your own schedule.")
         teacher_id = str(request.user.pk)
     if not teacher_id:
         raise ValidationError(
@@ -450,7 +452,11 @@ def student_attendance_report(request):
 
     if request.user.is_authenticated and is_teacher_user(request.user):
         allowed = _student_ids_for_teacher(request.user)
-        if int(student_id) not in allowed:
+        try:
+            requested_student_id = int(student_id)
+        except (TypeError, ValueError):
+            raise ValidationError({"student_id": "Expected an integer."})
+        if requested_student_id not in allowed:
             raise PermissionDenied(
                 "You can only view attendance for students in your lessons."
             )
@@ -458,6 +464,8 @@ def student_attendance_report(request):
     qs = Attendance.objects.filter(student_id=student_id).select_related(
         "lesson", "lesson__subject"
     )
+    if request.user.is_authenticated and is_teacher_user(request.user):
+        qs = qs.filter(lesson__teacher=request.user)
     if subject_id:
         qs = qs.filter(lesson__subject_id=subject_id)
     if date_from:
@@ -514,15 +522,17 @@ def branch_stats_report(request):
         branch_id=branch_id, status=StudentStatus.ACTIVE
     ).count()
 
-    attendance_qs = Attendance.objects.filter(
-        lesson__subject__branch_id=branch_id
-    )
+    attendance_qs = Attendance.objects.filter(lesson__subject__branch_id=branch_id)
     if date_from:
         attendance_qs = attendance_qs.filter(lesson__date__gte=date_from)
     if date_to:
         attendance_qs = attendance_qs.filter(lesson__date__lte=date_to)
-    total = attendance_qs.count()
-    present = attendance_qs.filter(status="present").count()
+    attendance_agg = attendance_qs.aggregate(
+        total=Count("id"),
+        present=Count("id", filter=Q(status=AttendanceStatus.PRESENT)),
+    )
+    total = attendance_agg["total"] or 0
+    present = attendance_agg["present"] or 0
     pct = (present / total * 100.0) if total else 0.0
 
     payload = {

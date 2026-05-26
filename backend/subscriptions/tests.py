@@ -1,13 +1,23 @@
+from rest_framework import status
 from branches.models import Branch, Subject
 from rest_framework.test import APITestCase
 
 from students_and_groups.models import Student
+from users.models import User
 
 from subscriptions.models import SubscriptionPlan
 
 
 class SubscriptionApiTests(APITestCase):
 	def setUp(self):
+		self.admin = User.objects.create_user(
+			phone="+38000000002",
+			password="secret",
+			first_name="Admin",
+			last_name="User",
+			role="ADMIN",
+		)
+		self.client.force_authenticate(user=self.admin)
 		self.branch_one = Branch.objects.create(name="Branch One", address="A", city="Kyiv")
 		self.branch_two = Branch.objects.create(name="Branch Two", address="B", city="Odesa")
 		self.subject_one = Subject.objects.create(name="Math", branch=self.branch_one)
@@ -39,6 +49,22 @@ class SubscriptionApiTests(APITestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertIn("results", response.data)
 		self.assertEqual(response.data["count"], 1)
+
+	def test_subscription_plan_archive_restore_and_filter(self):
+		plan = self._create_plan()
+
+		archive = self.client.post(f"/api/v1/subscription-plans/{plan['id']}/archive/")
+		self.assertEqual(archive.status_code, status.HTTP_200_OK)
+		self.assertEqual(archive.data["status"], "archived")
+
+		archived = self.client.get("/api/v1/subscription-plans/?status=archived")
+		self.assertEqual(archived.status_code, status.HTTP_200_OK)
+		self.assertEqual(archived.data["count"], 1)
+		self.assertEqual(archived.data["results"][0]["id"], plan["id"])
+
+		restore = self.client.post(f"/api/v1/subscription-plans/{plan['id']}/restore/")
+		self.assertEqual(restore.status_code, status.HTTP_200_OK)
+		self.assertEqual(restore.data["status"], "active")
 
 	def test_student_subscription_rejects_unlinked_subject(self):
 		plan = self._create_plan()

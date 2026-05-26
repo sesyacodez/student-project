@@ -45,7 +45,7 @@ export function isLoggedIn() {
  * Real login to our Django backend.
  */
 export async function login(phone, password) {
-  const res = await fetch(`${API_BASE}/users/login/`, {
+  const res = await fetch(`${API_BASE}/auth/login/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ phone, password }),
@@ -70,14 +70,58 @@ export async function login(phone, password) {
   if (data.access) {
     setTokens({ access: data.access, refresh: data.refresh });
 
-    setUser({
+    const payload = data.user && typeof data.user === "object" ? data.user : {
       id: data.id,
       phone: data.phone,
       first_name: data.first_name,
+      last_name: data.last_name,
       role: data.role,
+      branches: data.branches ?? (data.branch_id ? [data.branch_id] : []),
       branch_id: data.branch_id,
+    };
+    const branchId = payload.branch_id ?? null;
+    const branches = Array.isArray(payload.branches)
+      ? payload.branches
+      : branchId
+        ? [branchId]
+        : [];
+
+    setUser({
+      id: payload.id,
+      phone: payload.phone,
+      first_name: payload.first_name,
+      last_name: payload.last_name,
+      role: payload.role,
+      branches,
+      branch_id: branchId,
     });
   }
+}
+
+/** For local demo before JWT exists: navigate as ADMIN (API still AllowAny). */
+export function devLoginAsAdmin() {
+  setTokens({ access: "dev-local", refresh: "" });
+  setUser({
+    id: 0,
+    phone: "+dev-admin",
+    first_name: "Dev",
+    last_name: "Admin",
+    role: "ADMIN",
+    branches: [],
+  });
+}
+
+/** For local demo: TEACHER (no id — own-lesson checks skipped until real JWT /me). */
+export function devLoginAsTeacher() {
+  setTokens({ access: "dev-local", refresh: "" });
+  setUser({
+    id: 0,
+    phone: "+dev-teacher",
+    first_name: "Dev",
+    last_name: "Teacher",
+    role: "TEACHER",
+    branches: [],
+  });
 }
 
 export function logout() {

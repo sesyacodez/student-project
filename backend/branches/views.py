@@ -2,7 +2,7 @@ from django.db.models import Q
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from users.permissions import IsAdminRole
@@ -62,8 +62,7 @@ def _normalize_choice(value, allowed_values, field_name):
 
 class SubjectViewSet(viewsets.ModelViewSet):
     serializer_class = SubjectSerializer
-    permission_classes = [AllowAny]
-    authentication_classes = []
+    permission_classes = [IsAuthenticated, IsAdminRole]
 
     def get_queryset(self):
         queryset = Subject.objects.select_related("branch").order_by("name")

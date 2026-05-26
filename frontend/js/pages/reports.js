@@ -1,5 +1,5 @@
 import { getUser, requireRole } from "../auth.js";
-import { request, requestList } from "../http.js";
+import { request, requestAllPages } from "../http.js";
 import { renderNav } from "../nav.js";
 import { clearBanner, escapeHtml, formatApiError, showBanner } from "../ui.js";
 
@@ -33,44 +33,83 @@ if (!requireRole(["ADMIN", "TEACHER"])) {
       return `${name || teacher.phone || "User"} (${teacher.role})`;
     }
 
+    function addStudent(students, student) {
+      if (!student) return;
+      students.set(String(student.id), student);
+    }
+
+    function addSubject(subjects, subject) {
+      if (!subject) return;
+      subjects.set(String(subject.id), subject);
+    }
+
+    async function teacherReportOptions() {
+      const lessons = await requestAllPages("/lessons/");
+      const students = new Map();
+      const subjects = new Map();
+      const groupCache = new Map();
+
+      for (const lesson of lessons) {
+        addSubject(subjects, lesson.subject);
+        addStudent(students, lesson.student);
+
+        if (lesson.group) {
+          const gid = lesson.group.id;
+          if (!groupCache.has(gid)) {
+            groupCache.set(gid, await requestAllPages(`/groups/${gid}/students/`));
+          }
+          for (const membership of groupCache.get(gid) || []) {
+            addStudent(students, membership.student);
+          }
+        }
+      }
+
+      return {
+        students: Array.from(students.values()),
+        subjects: Array.from(subjects.values()),
+      };
+    }
+
     async function loadDropdowns() {
       clearBanner(banner);
       try {
-        const fetches = [
-          requestList("/students/"),
-          requestList("/subjects/"),
-        ];
-        if (isAdmin) {
-          fetches.push(requestList("/users/"), requestList("/branches/"));
-        }
-
-        const results = await Promise.all(fetches);
-        const students = results[0];
-        const subjects = results[1];
-
-        populateSelect(
-          selStudent,
-          students,
-          "— student —",
-          (student) => `${student.first_name} ${student.last_name}`
-        );
-        populateSelect(selSubject, subjects, "All subjects", (subject) => subject.name);
+        let students = [];
+        let subjects = [];
 
         if (isAdmin) {
-          const users = results[2];
-          const branches = results[3];
+          const [adminStudents, adminSubjects, users, branches] = await Promise.all([
+            requestAllPages("/students/"),
+            requestAllPages("/subjects/"),
+            requestAllPages("/users/"),
+            requestAllPages("/branches/"),
+          ]);
+          students = adminStudents;
+          subjects = adminSubjects;
           const teachers = users.filter(
             (u) => u.role === "TEACHER" || u.role === "ADMIN"
           );
 
-          populateSelect(selTeacher, teachers, "— teacher —", teacherLabel);
+          populateSelect(selTeacher, teachers, "Select teacher", teacherLabel);
           populateSelect(
             selBranch,
             branches,
-            "— branch —",
+            "Select branch",
             (branch) => `${branch.name} (${branch.city})`
           );
+        } else {
+          const options = await teacherReportOptions();
+          students = options.students;
+          subjects = options.subjects;
         }
+
+        populateSelect(
+          selStudent,
+          students,
+          "Select student",
+          (student) => `${student.first_name} ${student.last_name}`
+        );
+        populateSelect(selSubject, subjects, "All subjects", (subject) => subject.name);
+
       } catch (e) {
         showBanner(banner, formatApiError(e));
       }

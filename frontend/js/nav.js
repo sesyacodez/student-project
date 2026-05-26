@@ -26,6 +26,7 @@ export function renderNav() {
     inner += link("dashboard.html", "Home", "dashboard");
     inner += link("branches.html", "Branches", "branches");
     inner += link("register.html", "Users", "register");
+    inner += link("subjects.html", "Subjects", "subjects");
     inner += link("students.html", "Students", "students"); //new*
     inner += link("groups.html", "Groups", "groups"); //new*
     inner += link("subscription-plans.html", "Plans", "subscription-plans"); //new*
@@ -36,6 +37,7 @@ export function renderNav() {
   } else {
     inner += link("dashboard.html", "Home", "dashboard");
     inner += link("my-schedule.html", "My schedule", "my-schedule");
+    inner += link("my-students.html", "My students", "my-students");
     inner += link("reports.html", "Reports", "reports");
   }
 

@@ -1,5 +1,5 @@
 import { requireRole } from "../auth.js";
-import { requestList } from "../http.js";
+import { requestAllPages } from "../http.js";
 import { renderNav } from "../nav.js";
 import { clearBanner, formatApiError, showBanner } from "../ui.js";
 
@@ -21,7 +21,7 @@ if (!requireRole(["TEACHER"])) {
       const q = p.toString();
       try {
         const path = q ? `/lessons/?${q}` : `/lessons/`;
-        const rows = await requestList(path);
+        const rows = await requestAllPages(path);
         if (!rows.length) {
           tbody.innerHTML = `<tr><td colspan="6" class="app-empty">No lessons</td></tr>`;
           return;

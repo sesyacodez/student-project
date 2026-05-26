@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My students — EduManage</title>
+    <link rel="stylesheet" href="styles/global.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <header data-nav></header>
+      <main>
+        <h1>My students</h1>
+        <p class="muted">Students you teach via individual or group lessons.</p>
+        <div id="banner"></div>
+
+        <div class="app-card">
+          <div class="app-card__body app-form__row--inline">
+            <label class="app-form__label">from <input class="app-form__input" id="from" type="date" /></label>
+            <label class="app-form__label">to <input class="app-form__input" id="to" type="date" /></label>
+            <button type="button" class="app-btn app-btn--primary" id="btn-load">Load</button>
+          </div>
+        </div>
+
+        <div class="app-card">
+          <div class="app-card__body app-table-wrap">
+            <table class="app-table" id="students-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Branch</th>
+                  <th>Source</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="js/pages/my-students.js"></script>
+  </body>
+</html>
